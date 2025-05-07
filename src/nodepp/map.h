@@ -26,13 +26,13 @@ protected:
 public: 
 
     template< class... O >
-    map_t( const T& argc, const O&... args ) noexcept : obj(new NODE()) {
-        iterator::map([&]( T arg ){ obj->queue.push(arg); }, argc, args... );
+    map_t( const T& args, const O&... argc ) noexcept : obj(new NODE()) {
+        append( args, argc... );
     }
 
     template< ulong N >
     map_t( const T (&args) [N] ) noexcept : obj(new NODE()) { 
-        for( auto &x: args ){ obj->queue.push(x); }
+      for( auto &x: args ){ append(x); }
     }
     
     map_t() noexcept : obj(new NODE()) {}
@@ -42,11 +42,10 @@ public:
     V& operator[]( const U& id ) const noexcept { 
         auto x = obj->queue.first(); 
         
-        while( !id.empty() && x != nullptr ){
-            if ( x->data.first == id )
-               { return x->data.second; } 
-            else x = x->next; 
-        }
+        while( x != nullptr ){
+          if ( x->data.first == id )
+             { return x->data.second; } 
+        else { x = x->next; } }
 
                obj->queue.push({ id, V() }); 
         return obj->queue.last()->data.second;
@@ -69,11 +68,10 @@ public:
     bool has( const U& id ) const noexcept {
         auto x = obj->queue.first(); 
         
-        while( !id.empty() && x != nullptr ){
-            if ( x->data.first == id )
-               { return true; } 
-            else x = x->next; 
-        }
+        while( x != nullptr ){
+          if ( x->data.first == id )
+             { return true; } 
+        else { x = x->next; } }
 
         return false;
     }
@@ -87,28 +85,43 @@ public:
     /*─······································································─*/
 
     bool     empty() const noexcept { return obj->queue.empty(); }
-
     ulong     size() const noexcept { return obj->queue.size(); }
-
     ptr_t<T>  data() const noexcept { return obj->queue.data(); }
-    
     ptr_t<T>   get() const noexcept { return obj->queue.data(); }
-    
     queue_t<T> raw() const noexcept { return obj->queue; }
     
     /*─······································································─*/
 
-    template< class... T >
-    void clear( const T&... args ) const noexcept { erase( args... ); }
-    
-    /*─······································································─*/
+    template< class... O >
+    void clear( const U& argc, const O&... args ) const noexcept {
+         iterator::map([&](U arg){ erase(arg); }, argc, args... ); 
+    }
 
     void erase() const noexcept { obj->queue.erase(); }
 
     void erase( const U& id ) const noexcept {
-         obj->queue.erase( obj->queue.index_of([&]( T arg ){ return arg.first == id; }) );
+        obj->queue.erase( obj->queue.index_of(
+        [&]( T arg ){ return arg.first==id; }) 
+        );
+    }
+    
+    /*─······································································─*/
+
+    template< class... O >
+    void append( const T& argc, const O&... args ) const noexcept {
+         iterator::map([&](U arg){ append(arg); }, argc, args... ); 
     }
 
+    void append( const T& pair ) const noexcept {
+        auto x = obj->queue.first(); 
+        
+        while( x != nullptr ){
+          if ( x->data.first == pair.first )
+             { x->data.second = pair.second; return; } 
+        else { x = x->next; } }
+
+        obj->queue.push({ pair.first, V() });
+    }
 
 };}
 
