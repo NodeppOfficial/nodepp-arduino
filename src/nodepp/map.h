@@ -26,8 +26,8 @@ protected:
 public: 
 
     template< class... O >
-    map_t( const T& args, const O&... argc ) noexcept : obj(new NODE()) {
-        append( args, argc... );
+    map_t( const T& argc, const O&... args ) noexcept : obj(new NODE()) {
+        append( argc, args... );
     }
 
     template< ulong N >
@@ -42,25 +42,21 @@ public:
     V& operator[]( const U& id ) const noexcept { 
         auto x = obj->queue.first(); 
         
-        while( x != nullptr ){
-          if ( x->data.first == id )
-             { return x->data.second; } 
-        else { x = x->next; } }
+        while( !id.empty() && x != nullptr ){
+            if ( x->data.first == id )
+               { return x->data.second; } 
+            else x = x->next; 
+        }   append({ id, V() });
 
-               obj->queue.push({ id, V() }); 
         return obj->queue.last()->data.second;
     }
 
     /*─······································································─*/
 
-    array_t<U> keys() const noexcept {
-        array_t<U> result;
-
-        obj->queue.map([&]( T& items ){
-            result.push( items.first );
-        });
-
-        return result;
+    array_t<U> keys() const noexcept { array_t<U> result;
+        auto x = obj->queue.first(); while( x!=nullptr ){
+            result.push( x->data.first ); x=x->next; 
+        }   return result;
     }
 
     /*─······································································─*/
@@ -117,10 +113,10 @@ public:
         
         while( x != nullptr ){
           if ( x->data.first == pair.first )
-             { x->data.second = pair.second; return; } 
+             { x->data.second = pair.second; return; }
         else { x = x->next; } }
 
-        obj->queue.push({ pair.first, V() });
+        obj->queue.push( pair );
     }
 
 };}
