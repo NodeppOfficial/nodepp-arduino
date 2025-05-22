@@ -22,13 +22,19 @@
 
 namespace nodepp { namespace stream {
 
-    template< class T > void unpipe( const T& input )
-        { input.stop(); input.onUnpipe.emit(); }
+    template< class T > 
+    void unpipe( const T& input ){ input.stop(); input.onUnpipe.emit(); }
     
     /*─······································································─*/
     
+    template< class T >
+    file_t until( const string_t& path, const string_t& mode, const T& search ){
+        auto inp = file_t( path, mode ); _stream_::until arg;
+        process::poll::add( arg, inp, search ); return inp;
+    }
+    
     template< class... T >
-    void duplex( const T&... inp ){ _stream_::duplex arg;
+    void until( const T&... inp ){ _stream_::until arg;
         process::poll::add( arg, inp... );
     }
     
@@ -36,7 +42,7 @@ namespace nodepp { namespace stream {
     
     file_t pipe( const string_t& path, const string_t& mode ){
         auto inp = file_t( path, mode ); _stream_::pipe arg;
-        process::poll::add( arg, inp );  return inp;
+        process::poll::add( arg, inp ); return inp;
     }
     
     template< class... T >
@@ -48,11 +54,18 @@ namespace nodepp { namespace stream {
     
     file_t line( const string_t& path, const string_t& mode ){
         auto inp = file_t( path, mode ); _stream_::line arg;
-        process::poll::add( arg, inp );  return inp;
+        process::poll::add( arg, inp ); return inp;
     }
     
     template< class... T >
     void line( const T&... inp ){ _stream_::line arg;
+        process::poll::add( arg, inp... );
+    }
+    
+    /*─······································································─*/
+    
+    template< class... T >
+    void duplex( const T&... inp ){ _stream_::duplex arg;
         process::poll::add( arg, inp... );
     }
     

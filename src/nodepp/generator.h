@@ -74,14 +74,14 @@ namespace nodepp { namespace _promise_ {
         template< class T, class U, class V > 
         coEmit( ptr_t<bool> state, const T& func, const U& res, const V& rej ){
         gnStart
-            func( res, rej ); while( *state==1 ) { coNext; }
+            func( res, rej ); coWait( *state==1 );
         gnStop
         }
 
         template< class T, class U > 
         coEmit( ptr_t<bool> state, const T& func, const U& res ){
         gnStart
-            func( res ); while( *state==1 ) { coNext; }
+            func( res ); coWait( *state==1 );
         gnStop
         }
 
@@ -314,6 +314,44 @@ namespace nodepp { namespace _stream_ {
             while( inp.is_available() && out.is_available() ){
             while( _read(&inp) ==1 )           { coNext; }
                if( _read.state <=0 )           { break;  }
+            while( _write(&out,_read.data)==1 ){ coNext; }
+               if( _write.state<=0 )           { break;  }
+                    inp.onData.emit( _read.data );
+            }       inp.close(); out.close();
+        gnStop
+        }
+
+    };
+    
+    /*─······································································─*/
+
+    GENERATOR( until ){ 
+    private:
+
+        _file_::write _write;
+        _file_::until  _read;
+
+    public:
+
+        template< class T, class U > 
+        coEmit( const T& inp, const U& val ){
+            if( inp.is_closed() ){ return -1; }
+        gnStart inp.onPipe.emit();
+            while( inp.is_available() ){
+            while( _read(&inp,val)==1 ){ coNext; } 
+               if( _read.state    <=0 ){ break;  }
+                   inp.onData.emit( _read.data );
+            }      inp.close(); 
+        gnStop
+        }
+
+        template< class T, class V, class U > 
+        coEmit( const T& inp, const V& out, const U& val ){
+            if( inp.is_closed() || out.is_closed() ){ return -1; }
+        gnStart inp.onPipe.emit(); out.onPipe.emit();
+            while( inp.is_available() && out.is_available() ){
+            while( _read(&inp,val)==1 )        { coNext; } 
+               if( _read.state    <=0 )        { break;  }
             while( _write(&out,_read.data)==1 ){ coNext; }
                if( _write.state<=0 )           { break;  }
                     inp.onData.emit( _read.data );

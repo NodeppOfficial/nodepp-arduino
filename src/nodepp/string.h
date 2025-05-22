@@ -436,9 +436,9 @@ public:
 /*────────────────────────────────────────────────────────────────────────────*/
 
 string_t operator+( const string_t& A, const string_t& B ){
-    string_t C = string::buffer( A.size() + B.size() ); ulong n = 0;
-    for( auto x : A ){ C[n] = x; n++; }
-    for( auto x : B ){ C[n] = x; n++; } return C;
+    string_t C = string::buffer( A.size() + B.size() ); 
+    memcpy( C.get()+ A.size(), B.get(), B.size() );
+    memcpy( C.get(), A.get() , A.size() ); return C;
 }
 
 string_t operator^( const string_t& A, const string_t& B ){
