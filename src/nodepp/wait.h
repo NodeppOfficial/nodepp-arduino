@@ -14,10 +14,10 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { template< class T > class wait_t { 
+namespace nodepp { template< class T, class... A > class wait_t { 
 protected:
 
-    using NODE = function_t<bool,T>; ptr_t<queue_t<NODE>> obj;
+    using NODE = function_t<bool,T,A...>; ptr_t<queue_t<NODE>> obj;
 
 public: wait_t() noexcept : obj( new queue_t<NODE>() ) {}
     
@@ -29,18 +29,18 @@ public: wait_t() noexcept : obj( new queue_t<NODE>() ) {}
 
     void off( void* address ) const noexcept { process::clear( address ); }
 
-    void* once( T val, function_t<void> func ) const noexcept {
+    void* once( T val, function_t<void,A...> func ) const noexcept {
         if( obj->size() >= MAX_EVENTS ) { return nullptr; }
-        ptr_t<bool> out = new bool(1); obj->push([=]( T arg ){
-            if( *out != 0 && val == arg  ){ func(); }
+        ptr_t<bool> out = new bool(1); obj->push([=]( T arg, A... args ){
+            if( *out != 0 && val == arg ){ func( args... ); }
             *out = 0; return *out;
         }); return &out;
     }
 
-    void* on( T val, function_t<void> func ) const noexcept {
+    void* on( T val, function_t<void,A...> func ) const noexcept {
         if( obj->size() >= MAX_EVENTS ) { return nullptr; }
-        ptr_t<bool> out = new bool(1); obj->push([=]( T arg ){
-            if( *out != 0 && val == arg  ){ func(); } 
+        ptr_t<bool> out = new bool(1); obj->push([=]( T arg, A... args ){
+            if( *out != 0 && val == arg ){ func( args... ); } 
             return *out;
         }); return &out;
     }
@@ -53,10 +53,10 @@ public: wait_t() noexcept : obj( new queue_t<NODE>() ) {}
     
     /*─······································································─*/
 
-    void emit( const T& arg ) const noexcept {
+    void emit( const T& arg, const A&... args ) const noexcept {
         auto x = obj->first(); while( x != nullptr ){
         auto y = x->next; 
-            if( !x->data( arg ) ){ obj->erase(x); }
+            if( !x->data( arg, args... ) ){ obj->erase(x); }
         x = y; }
     }
     
