@@ -25,6 +25,7 @@ protected:
     struct NODE {
         ulong        range[2] ={ 0, 0 };
         FILE*        fd       = nullptr;
+        bool         keep     = false;
         int          state    = 0;
         int          feof     = 1;
         ptr_t<char>  buffer;
@@ -64,17 +65,25 @@ public: file_t() noexcept {}
 
     /*─······································································─*/
 
-    bool    is_closed() const noexcept { return obj->state <  0 ||  is_feof() || feof(obj->fd); }
-    bool      is_feof() const noexcept { return obj->feof  <= 0 && obj->feof  != -2; }
-    bool is_available() const noexcept { return obj->state >= 0 && !is_closed(); }
+    bool     is_closed() const noexcept { return obj->state <  0 ||  is_feof() || feof(obj->fd); }
+    bool       is_feof() const noexcept { return obj->feof  <= 0 && obj->feof  != -2; }
+    bool  is_available() const noexcept { return obj->state >= 0 && !is_closed(); }
+    bool is_persistent() const noexcept { return obj->keep; }
 
     /*─······································································─*/
     
     void resume() const noexcept { if(obj->state== 0) { return; } obj->state= 0; onResume.emit(); }
-    void  close() const noexcept { if(obj->state < 0) { return; } obj->state=-1; onDrain.emit();  }
     void   stop() const noexcept { if(obj->state==-3) { return; } obj->state=-3; onStop.emit();   }
     void  reset() const noexcept { if(obj->state!=-2) { return; } resume(); pos(0); }
     void  flush() const noexcept { obj->buffer.fill(0); }
+
+    /*─······································································─*/
+
+    void  close() const noexcept {
+        if( obj->state< 0 ){ return; }
+        if( obj->keep== 1 ){ stop(); goto DONE; }
+            obj->state=-1; DONE:; onDrain.emit();
+    }
     
     /*─······································································─*/
 
@@ -100,7 +109,7 @@ public: file_t() noexcept {}
     /*─······································································─*/
 
     ulong size() const noexcept { auto curr = pos();
-        if( fseek( obj->fd, 0 , SEEK_END )>0 ) return 0;
+        if( fseek( obj->fd, 0 , SEEK_END )>0 ){ return 0; }
         ulong size = ftell(obj->fd); pos(curr); return size;
     }
     
@@ -163,8 +172,7 @@ public: file_t() noexcept {}
     
     /*─······································································─*/
 
-    virtual int _read( char* bf, const ulong& sx )  const noexcept { return __read( bf, sx ); }
-
+    virtual int _read ( char* bf, const ulong& sx ) const noexcept { return __read( bf, sx ); }
     virtual int _write( char* bf, const ulong& sx ) const noexcept { return __write( bf, sx ); }
     
     /*─······································································─*/
@@ -172,14 +180,14 @@ public: file_t() noexcept {}
     virtual int __read( char* bf, const ulong& sx ) const noexcept {
         if( is_closed() ){ return -1; } if( sx==0 ){ return 0; }
         obj->feof = fread( bf, sizeof(char), sx, obj->fd );
-        if( obj->feof <= 0 || feof( obj->fd ) ){ close(); } 
+        if( obj->feof <= 0 || feof( obj->fd ) ){ free(); } 
         return obj->feof;
     }
 
     virtual int __write( char* bf, const ulong& sx ) const noexcept {
         if( is_closed() ){ return -1; } if( sx==0 ){ return 0; }
         obj->feof = fwrite( bf, sizeof(char), sx, obj->fd );
-        if( obj->feof <= 0 || feof( obj->fd ) ){ close(); } 
+        if( obj->feof <= 0 || feof( obj->fd ) ){ free(); } 
         return obj->feof;
     }
 
@@ -204,5 +212,3 @@ public: file_t() noexcept {}
 };}
 
 /*────────────────────────────────────────────────────────────────────────────*/
-
-#endif

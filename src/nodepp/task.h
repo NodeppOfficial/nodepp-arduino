@@ -19,19 +19,17 @@ namespace nodepp { namespace process {
     queue_t<function_t<int>> queue;
 
     void clear(){ queue.clear(); }
-
     ulong size(){ return queue.size(); }
-
     bool empty(){ return queue.empty(); }
 
     void clear( void* address ){ 
         if( address == nullptr ){ return; }
-            *((bool*)( address )) = 0; 
+        *((bool*)( address )) = 0; 
     }
 
     template< class T, class... V >
     void* add( T cb, const V&... arg ){ 
-        if( queue.size() >= MAX_TASKS ){ return nullptr; }
+    //  if( queue.size() >= MAX_TASKS ){ return nullptr; }
         ptr_t<T>    clb = new T( cb );
         ptr_t<bool> blk = new bool(0);
         ptr_t<bool> out = new bool(1); queue.push([=](){ 

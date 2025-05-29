@@ -205,7 +205,7 @@ namespace nodepp { namespace _file_ {
 
         while( str->is_available() ){
         while( _read(str) == 1 ){ coNext; }
-           if( _read.state<= 0 ){ break; } state = 1; s += _read.data; 
+           if( _read.state<= 0 ){ break; } state=1; s+=_read.data; 
           for( auto &x: s )     { if( x == ch ){ break; } state++; }
            if( state<=s.size() ){ break; }
         }      str->set_borrow(s);

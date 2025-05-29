@@ -24,8 +24,10 @@ namespace nodepp { class serial_t {
 protected:
 
     struct NODE {
-        int          state = 0;
-        int          feof  = 1;
+        ulong        range[2] = { 0, 0 };
+        bool         keep     = false;
+        int          state    = 0;
+        int          feof     = 1;
         ptr_t<char>  buffer;
         string_t     borrow;
     };  ptr_t<NODE> obj = new NODE();
@@ -57,22 +59,29 @@ public: serial_t() noexcept {}
     bool    is_available() const noexcept { return obj->state >= 0 && !is_closed(); }
     bool       is_closed() const noexcept { return obj->state <  0 ||  is_feof(); }
     virtual bool is_feof() const noexcept { return obj->feof  == 0; }
+    bool   is_persistent() const noexcept { return obj->keep; }
 
     /*─······································································─*/
     
     void resume() const noexcept { if(obj->state== 0) { return; } obj->state= 0; onResume.emit(); }
-    void  close() const noexcept { if(obj->state < 0) { return; } obj->state=-1; onDrain.emit();  }
-    void   stop() const noexcept { if(obj->state==-3) { return; } obj->state=-3; onStop.emit();   }
+    void   stop() const noexcept { if(obj->state==-3) { return; } obj->state=-3; onStop  .emit(); }
     void  reset() const noexcept { if(obj->state!=-2) { return; } resume(); pos(0); }
     void  flush() const noexcept { obj->buffer.fill(0); }
+
+    /*─······································································─*/
+
+    void  close() const noexcept {
+        if( obj->state< 0 ){ return; }
+        if( obj->keep== 1 ){ stop(); goto DONE; }
+            obj->state=-1; DONE:; onDrain.emit();
+    }
     
     /*─······································································─*/
 
     void   set_range( ulong /*unused*/, ulong /*unused*/ ) const noexcept { }
     ulong* get_range() const noexcept { return nullptr; }
-    int       get_fd() const noexcept { return 1; }
-
     int    get_state() const noexcept { return obj == nullptr ? -1 : obj->state; }
+    int       get_fd() const noexcept { return 1; }
     
     /*─······································································─*/
 
@@ -115,6 +124,13 @@ public: serial_t() noexcept {}
 
     char read_char() const noexcept { return read(1)[0]; }
 
+    string_t read_until( char ch ) const noexcept {
+        auto gen = nodepp::_file_::until();
+        while( gen( this, ch ) == 1 )
+             { process::next(); }
+        return gen.data;
+    }
+
     string_t read_line() const noexcept {
         auto gen = nodepp::_file_::line();
         while( gen( this ) == 1 )
@@ -140,8 +156,7 @@ public: serial_t() noexcept {}
     
     /*─······································································─*/
 
-    virtual int _read( char* bf, const ulong& sx )  const noexcept { return __read( bf, sx ); }
-
+    virtual int _read ( char* bf, const ulong& sx ) const noexcept { return __read( bf, sx ); }
     virtual int _write( char* bf, const ulong& sx ) const noexcept { return __write( bf, sx ); }
     
     /*─······································································─*/
