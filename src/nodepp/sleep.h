@@ -18,10 +18,8 @@
 namespace nodepp { namespace process {
 
     ulong seconds(){ return ::millis() / 1000; }
-
-    ulong micros(){ return ::micros(); }
-
-    ulong millis(){ return ::millis(); }
+    ulong  micros(){ return ::micros(); }
+    ulong  millis(){ return ::millis(); }
 
 }}
 

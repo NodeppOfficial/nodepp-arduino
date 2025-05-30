@@ -118,9 +118,8 @@ namespace nodepp { namespace _file_ {
         elif ( pos >=r[1] ){ coEnd; } }
         else { d = str->get_buffer_size(); }
 
-        if( data.empty() ) do { coNext;
-            state=str->_read( str->get_buffer_data(), min(d,size) );
-        } while ( state==-2 );
+        if( data.empty() )
+          { coWait((state=str->_read(str->get_buffer_data(),min(d,size)))==-2); }
         
         if( state > 0 ){
             data  = string_t( str->get_buffer_data(), (ulong) state );
@@ -148,10 +147,8 @@ namespace nodepp { namespace _file_ {
         if(!str->is_available() || msg.empty() ){ coEnd; }
         if( b.empty() ){ b = msg; }
         
-        do { /*coNext;*/ do { coNext;
-             state=str->_write( b.data()+data, b.size()-data );
-        } while ( state==-2 ); if( state>0 ){ data += state; }
-        } while ( state>=0 && data<b.size() ); b.clear();
+        do{ coWait( (state=str->_write( b.data()+data, b.size()-data ))==-2 );
+            if( state>0 ){ data += state; }} while ( state>=0 && data<b.size() ); b.clear();
 
     gnStop
     }};
@@ -412,7 +409,7 @@ namespace nodepp { namespace _poll_ {
         template< class V, class T, class U > 
         coEmit( V ctx, T str, U cb ){
             if( ctx.is_closed() ){ return -1; }
-        gnStart coNext;
+        gnStart
             str->onSocket.emit( ctx ); cb(ctx);
         gnStop
         }

@@ -19,6 +19,12 @@ template< class T > T clamp( const T& val, const T& _min, const T& _max ){ retur
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
+#define _EERROR( EV, ... ) if  ( EV.empty() ){ console::error(__VA_ARGS__); } \
+                           else{ EV.emit( except_t(__VA_ARGS__) ); }
+#define _ERROR( ... )          { console::error(__VA_ARGS__); exit(1); }
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
 #define coDelay(VALUE)  do { static auto tm = process::millis()+VALUE; while( process::millis() < tm ){ coNext; } tm = process::millis()+VALUE; break; } while (0)
 #define coUDelay(VALUE) do { static auto tm = process::micros()+VALUE; while( process::micros() < tm ){ coNext; } tm = process::micros()+VALUE; break; } while (0)
 
@@ -33,16 +39,10 @@ template< class T > T clamp( const T& val, const T& _min, const T& _max ){ retur
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define _EERROR( Ev, ... ) if  ( Ev.empty() ){ console::error(__VA_ARGS__); } \
-                           else{ Ev.emit( except_t(__VA_ARGS__) ); }
-#define _ERROR( ... )      { console::error(__VA_ARGS__); exit(1); }
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
 #define coStart static int _state_ = 0; { switch(_state_) { case 0:;
-#define coEnd         do { _state_ = 0; return -1; } while (0)
+#define coEnd         do { _state_ = 0; return -1; }  while(0)
 #define coStop           } _state_ = 0; return -1; }
-#define coWait(VALUE) do { coNext; } while( VALUE )
+#define coWait(VALUE) do { while( VALUE ){ coNext; }} while(0)
 #define coSet(VALUE)       _state_ = VALUE
 #define coGet              _state_
 
@@ -92,35 +92,35 @@ template< class T > T clamp( const T& val, const T& _min, const T& _max ){ retur
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef MAX_WORKERS
-#define MAX_WORKERS 64
-#endif
-
-#ifndef MAX_EVENTS
-#define MAX_EVENTS  64
-#endif
-
-#ifndef MAX_FILENO
-#define MAX_FILENO  64
-#endif
-
-#ifndef MAX_TASKS
-#define MAX_TASKS   64
-#endif
-
-#ifndef MAX_PATH
-#define MAX_PATH    64
-#endif
+#define CHUNK_SIZE 256 // 65536
+#define UNBFF_SIZE 128 // 4096
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define CHUNK_SIZE 256
-#define UNBFF_SIZE 128
+#ifndef MAX_WORKERS
+#define MAX_WORKERS 0 // 64
+#endif
+
+#ifndef MAX_EVENTS
+#define MAX_EVENTS  0 // 64
+#endif
+
+#ifndef MAX_FILENO
+#define MAX_FILENO  10 // 0
+#endif
+
+#ifndef MAX_TASKS
+#define MAX_TASKS   0 // 64
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH    1024 // 0
+#endif
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #ifndef TIMEOUT
-#define TIMEOUT 0
+#define TIMEOUT 0 // 1
 #endif
 
 /*────────────────────────────────────────────────────────────────────────────*/
