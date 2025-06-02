@@ -19,29 +19,29 @@ namespace nodepp { namespace _timer_ {
 
     GENERATOR( timer ){ public:
 
-        template< class V, class... T > 
+        template< class V, class... T >
         coEmit( V func, ulong time, const T&... args ){
         gnStart
             coDelay( time ); if( func(args...)<0 )
-                   { coEnd; } coGoto(0); 
+                   { coEnd; } coGoto(0);
         gnStop
         }
 
-        template< class V, class... T > 
+        template< class V, class... T >
         coEmit( V func, ulong* time, const T&... args ){
         gnStart
             coDelay( *time ); if( func(args...)<0 )
-                   { coEnd; } coGoto(0); 
+                   { coEnd; } coGoto(0);
         gnStop
         }
 
     };
-    
+
     /*─······································································─*/
 
     GENERATOR( utimer ){ public:
 
-        template< class V, class... T > 
+        template< class V, class... T >
         coEmit( V func, ulong time, const T&... args ){
         gnStart
             coUDelay( time ); if( func(args...)<0 )
@@ -49,7 +49,7 @@ namespace nodepp { namespace _timer_ {
         gnStop
         }
 
-        template< class V, class... T > 
+        template< class V, class... T >
         coEmit( V func, ulong* time, const T&... args ){
         gnStart
             coUDelay( *time ); if( func(args...)<0 )
@@ -59,7 +59,7 @@ namespace nodepp { namespace _timer_ {
 
     };
 
-}}  
+}}
 #undef NODEPP_GENERATOR
 #endif
 
@@ -71,14 +71,14 @@ namespace nodepp { namespace _promise_ {
 
     GENERATOR( resolve ){ public:
 
-        template< class T, class U, class V > 
+        template< class T, class U, class V >
         coEmit( ptr_t<bool> state, const T& func, const U& res, const V& rej ){
         gnStart
             func( res, rej ); coWait( *state==1 );
         gnStop
         }
 
-        template< class T, class U > 
+        template< class T, class U >
         coEmit( ptr_t<bool> state, const T& func, const U& res ){
         gnStart
             func( res ); coWait( *state==1 );
@@ -87,7 +87,7 @@ namespace nodepp { namespace _promise_ {
 
     };
 
-}}  
+}}
 #undef NODEPP_GENERATOR
 #endif
 
@@ -97,14 +97,14 @@ namespace nodepp { namespace _promise_ {
     #define  GENERATOR_FILE
 namespace nodepp { namespace _file_ {
 
-    GENERATOR( read ){ 
-    private:  
-        ulong    d; 
-        ulong*   r; 
-        
-    public: 
+    GENERATOR( read ){
+    private:
+        ulong    d;
+        ulong*   r;
+
+    public:
         string_t data ;
-        int      state; 
+        int      state;
 
     template< class T > coEmit( T* str, ulong size=CHUNK_SIZE ){
         if( str->is_closed() ){ return -1; }
@@ -120,33 +120,33 @@ namespace nodepp { namespace _file_ {
 
         if( data.empty() )
           { coWait((state=str->_read(str->get_buffer_data(),min(d,size)))==-2); }
-        
+
         if( state > 0 ){
             data  = string_t( str->get_buffer_data(), (ulong) state );
         }   state = min( data.size(), size ); str->del_borrow();
 
         str->set_borrow( data.splice( size, data.size() ) );
-        
+
     gnStop
     }};
-    
+
     /*─······································································─*/
 
-    GENERATOR( write ){ 
+    GENERATOR( write ){
     private:
         string_t b ;
 
     public:
-        ulong    data ; 
+        ulong    data ;
         int      state;
-        
+
     template< class T > coEmit( T* str, const string_t& msg ){
         if( str->is_closed() ){ return -1; }
     gnStart state=0; data=0; str->flush();
 
         if(!str->is_available() || msg.empty() ){ coEnd; }
         if( b.empty() ){ b = msg; }
-        
+
         do{ coWait( (state=str->_write( b.data()+data, b.size()-data ))==-2 );
             if( state>0 ){ data += state; }} while ( state>=0 && data<b.size() ); b.clear();
 
@@ -155,37 +155,34 @@ namespace nodepp { namespace _file_ {
 
     /*─······································································─*/
 
-    GENERATOR( until ){ 
+    GENERATOR( until ){
     private:
-        _file_::read _read;
-        uint sop=0, pos=0;
-        string_t    s;
 
-    public: 
-        string_t  data ;  
-        ulong     state; 
+        _file_::read _read; uint pos=0;
+
+    public:
+        string_t  data ;
+        ulong     state;
 
     template< class T > coEmit( T* str, string_t ch ){
         if( str->is_closed() ){ return -1; }
-    gnStart s.clear(); data.clear(); str->flush(); state=0; pos=0;
+    gnStart data.clear(); str->flush(); state=0; pos=0;
 
-        while( str->is_available() ){ coWait( _read(str)==1 );
-           if( _read.state<= 0     ){ break; } state=0; s+=_read.data;
-        while( state<s.size()      ){ state++;
-           if( ch.size()<=pos      ){ pos=0; break; }
-         elif( ch[pos]==s[state]   ){ pos++;        }
-         else                       { pos=0;        }} break; }      
-        
-        str->set_borrow(s); state -= pos; ptr_t<int> results ({
-            memcmp( str->get_borrow().slice(state-ch.size()).get(), ch.get(), ch.size() ),
-            memcmp( str->get_borrow().get(), ch.get(), ch.size() )
-        });
+        coWait( _read(str) ==1 );
+            if( _read.state<=0 ){ coEnd; }
 
-        if( results[1]==0 ){
-                 data = str->get_borrow().splice( 0, ch.size() );
-        } elif( results[0]==0 ){
-                 data = str->get_borrow().splice( 0, state-ch.size() );
-        } else { data = str->get_borrow().splice( 0, state ); }
+        do{for( auto x: _read.data ){ state++;
+            if( ch[pos]  ==x   ){ pos++; } else { pos=0; }
+            if( ch.size()==pos ){ break; } }
+        } while(0);
+
+        str->set_borrow( _read.data );
+
+        if( memcmp( _read.data.get(), ch.get(), ch.size() )==0 ){
+                 data=str->get_borrow().splice( 0, ch.size() );
+        } elif( state > pos ) {
+                 data=str->get_borrow().splice( 0, state-pos );
+        } else { data=str->get_borrow().splice( 0, state     ); }
 
         state = data.size();
 
@@ -194,13 +191,16 @@ namespace nodepp { namespace _file_ {
 
     template< class T > coEmit( T* str, char ch ){
         if( str->is_closed() ){ return -1; }
-    gnStart state=1; s.clear(); data.clear(); str->flush();
+    gnStart data.clear(); str->flush(); state=0;
 
-        while( str->is_available() ){ coWait( _read(str)==1 );
-           if( _read.state<= 0 ){ break; } state=1; s+=_read.data;
-          for( auto &x: s )     { if( x==ch ){ break; } state++; } break; }      
-        
-               str->set_borrow(s);
+        coWait( _read(str) ==1 );
+            if( _read.state<=0 ){ coEnd; }
+
+        do{ for( auto x: _read.data ){ state++;
+             if( ch ==x ){ break; } continue; }
+        } while(0);
+
+               str->set_borrow(_read.data);
         data = str->get_borrow().splice( 0, state );
 
     gnStop
@@ -208,28 +208,29 @@ namespace nodepp { namespace _file_ {
 
     /*─······································································─*/
 
-    GENERATOR( line ){ 
+    GENERATOR( line ){
     private:
-        _file_::read _read;
-        string_t     s;
 
-    public: 
-        string_t  data ;  
-        ulong     state; 
+        _file_::read _read;
+
+    public:
+        string_t  data ;
+        ulong     state;
 
     template< class T > coEmit( T* str ){
         if( str->is_closed() ){ return -1; }
-    gnStart state=1; s.clear(); data.clear(); str->flush();
+    gnStart data.clear(); str->flush(); state=0;
 
-        while( str->is_available() ){
-        while( _read(str) == 1 ){ coNext; }
-           if( _read.state<= 0 ){ break; } state = 1; s += _read.data; 
-          for( auto &x: s )     { if( x == '\n' ){ break; } state++; }
-           if( state<=s.size() ){ break; }
-        }      str->set_borrow(s);
+        coWait( _read(str) ==1 );
+            if( _read.state<=0 ){ coEnd; }
 
+        do{ for( auto x: _read.data ){ state++;
+             if('\n'==x ){ break; } continue; }
+        } while(0);
+
+               str->set_borrow(_read.data);
         data = str->get_borrow().splice( 0, state );
-    
+
     gnStop
     }};
 
@@ -240,10 +241,10 @@ namespace nodepp { namespace _file_ {
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #if !defined(GENERATOR_STREAM) && defined(NODEPP_STREAM) && defined(NODEPP_GENERATOR)
-    #define  GENERATOR_STREAM 
+    #define  GENERATOR_STREAM
 namespace nodepp { namespace _stream_ {
 
-    GENERATOR( duplex ){ 
+    GENERATOR( duplex ){
     private:
 
         _file_::write _write1, _write2;
@@ -262,7 +263,7 @@ namespace nodepp { namespace _stream_ {
                if( _write1.state<=0 )            { break;  }
                     inp.onData.emit( _read1.data );
             }       inp.close(); out.close();
-            
+
             coEnd; coYield(2);
 
             while( inp.is_available() && out.is_available() ){
@@ -277,10 +278,10 @@ namespace nodepp { namespace _stream_ {
         }
 
     };
-    
+
     /*─······································································─*/
 
-    GENERATOR( pipe ){ 
+    GENERATOR( pipe ){
     private:
 
         _file_::write _write;
@@ -295,7 +296,7 @@ namespace nodepp { namespace _stream_ {
             while( _read(&inp)==1 ){ coNext; }
                if( _read.state<=0 ){ break;  }
                     inp.onData.emit( _read.data );
-            }       inp.close(); 
+            }       inp.close();
         gnStop
         }
 
@@ -313,10 +314,10 @@ namespace nodepp { namespace _stream_ {
         }
 
     };
-    
+
     /*─······································································─*/
 
-    GENERATOR( until ){ 
+    GENERATOR( until ){
     private:
 
         _file_::write _write;
@@ -324,24 +325,24 @@ namespace nodepp { namespace _stream_ {
 
     public:
 
-        template< class T, class U > 
+        template< class T, class U >
         coEmit( const T& inp, const U& val ){
             if( inp.is_closed() ){ return -1; }
         gnStart inp.onPipe.emit();
             while( inp.is_available() ){
-            while( _read(&inp,val)==1 ){ coNext; } 
+            while( _read(&inp,val)==1 ){ coNext; }
                if( _read.state    <=0 ){ break;  }
                    inp.onData.emit( _read.data );
-            }      inp.close(); 
+            }      inp.close();
         gnStop
         }
 
-        template< class T, class V, class U > 
+        template< class T, class V, class U >
         coEmit( const T& inp, const V& out, const U& val ){
             if( inp.is_closed() || out.is_closed() ){ return -1; }
         gnStart inp.onPipe.emit(); out.onPipe.emit();
             while( inp.is_available() && out.is_available() ){
-            while( _read(&inp,val)==1 )        { coNext; } 
+            while( _read(&inp,val)==1 )        { coNext; }
                if( _read.state    <=0 )        { break;  }
             while( _write(&out,_read.data)==1 ){ coNext; }
                if( _write.state<=0 )           { break;  }
@@ -351,10 +352,10 @@ namespace nodepp { namespace _stream_ {
         }
 
     };
-    
+
     /*─······································································─*/
 
-    GENERATOR( line ){ 
+    GENERATOR( line ){
     private:
 
         _file_::write _write;
@@ -366,10 +367,10 @@ namespace nodepp { namespace _stream_ {
             if( inp.is_closed() ){ return -1; }
         gnStart inp.onPipe.emit();
             while( inp.is_available() ){
-            while( _read(&inp)==1 ){ coNext; } 
+            while( _read(&inp)==1 ){ coNext; }
                if( _read.state<=0 ){ break;  }
                    inp.onData.emit( _read.data );
-            }      inp.close(); 
+            }      inp.close();
         gnStop
         }
 
@@ -377,7 +378,7 @@ namespace nodepp { namespace _stream_ {
             if( inp.is_closed() || out.is_closed() ){ return -1; }
         gnStart inp.onPipe.emit(); out.onPipe.emit();
             while( inp.is_available() && out.is_available() ){
-            while( _read(&inp)==1 )            { coNext; } 
+            while( _read(&inp)==1 )            { coNext; }
                if( _read.state<=0 )            { break;  }
             while( _write(&out,_read.data)==1 ){ coNext; }
                if( _write.state<=0 )           { break;  }
@@ -387,7 +388,7 @@ namespace nodepp { namespace _stream_ {
         }
 
     };
-    
+
 }}
 #undef NODEPP_GENERATOR
 #endif
@@ -400,7 +401,7 @@ namespace nodepp { namespace _poll_ {
 
     GENERATOR( poll ){ public:
 
-        template< class V, class T, class U > 
+        template< class V, class T, class U >
         coEmit( V ctx, T str, U cb ){
             if( ctx.is_closed() ){ return -1; }
         gnStart
@@ -410,6 +411,6 @@ namespace nodepp { namespace _poll_ {
 
     };
 
-}}  
+}}
 #undef NODEPP_GENERATOR
 #endif
