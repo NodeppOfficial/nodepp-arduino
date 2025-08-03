@@ -55,6 +55,8 @@ namespace nodepp { namespace process { loop_t _loop_;
     template< class... T >
     void* add ( const T&... args ){ return _loop_.add( args... ); }
 
+    /*─······································································─*/
+
     template< class T, class... V >
     void await( T cb, const V&... args ){ ++_TASK_;
          while( cb( args... )>=0 && !should_close() )
