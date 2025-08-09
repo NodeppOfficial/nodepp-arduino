@@ -44,17 +44,17 @@ struct url_t {
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-map_t<string_t,uint> protocols ({
-     { "https", 443 }, { "wss" , 443 },
-     { "tls"  , 443 }, { "dtls", 443 },
-     { "http" ,  80 }, { "ws"  ,  80 },
-     { "tcp"  ,  80 }, { "udp" ,  80 },
-     { "ftp"  ,  21 }, { "ssh" ,  22 } 
-});
+namespace url {
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace url {
+    map_t<string_t,uint> protocols ({
+        { "https", 443 }, { "wss" , 443 },
+        { "tls"  , 443 }, { "dtls", 443 },
+        { "http" ,  80 }, { "ws"  ,  80 },
+        { "tcp"  ,  80 }, { "udp" ,  80 },
+        { "ftp"  ,  21 }, { "ssh" ,  22 } 
+    });
 
     bool is_valid( const string_t& URL ){
         return regex::test( URL, "^\\w+://[^.]+", 1 );

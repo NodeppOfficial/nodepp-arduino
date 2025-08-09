@@ -28,6 +28,13 @@ namespace nodepp { namespace stream {
     /*─······································································─*/
     
     template< class... T >
+    void duplex( const T&... inp ){ generator::stream::duplex arg;
+         process::add( arg, inp... );
+    }
+    
+    /*─······································································─*/
+    
+    template< class... T >
     void until( const T&... inp ){ generator::stream::until arg;
          process::add( arg, inp... );
     }
@@ -48,13 +55,6 @@ namespace nodepp { namespace stream {
     
     /*─······································································─*/
     
-    template< class... T >
-    void duplex( const T&... inp ){ generator::stream::duplex arg;
-         process::add( arg, inp... );
-    }
-    
-    /*─······································································─*/
-    
     template< class T, class V >
     ulong await( const T& fa, const V& fb ){ 
         ulong out; /*-----------*/ generator::stream::pipe _read;
@@ -63,9 +63,9 @@ namespace nodepp { namespace stream {
     
     template< class T >
     string_t await( const T& fp ){ 
-        string_t out; generator::stream::pipe _read;
-        while( fp.is_available() ){ out += fp.read(); } 
-    return out; }
+        queue_t<string_t> out; generator::stream::pipe _read;
+        while( fp.is_available() ){ out.push( fp.read() ); } 
+    return array_t<string_t>( out.data() ).join(""); }
 
 }}
 

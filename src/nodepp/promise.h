@@ -125,8 +125,8 @@ public:
         if( obj->state & PROMISE_STATE::RESOLVED ){ return res; }
         if( obj->state & PROMISE_STATE::REJECTED ){ return rej; }
 
-                throw except_t( "invalid result" );
-    } while(0); throw except_t( "running in background" ); }
+                ARDUINO_ERROR( "invalid result" );
+    } while(0); ARDUINO_ERROR( "running in background" ); }
 
     /*─······································································─*/
 

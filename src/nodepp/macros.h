@@ -100,7 +100,7 @@ int     _TASK_ = 0;
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define HASH_TABLE_SIZE 8
+#define HASH_TABLE_SIZE 16
 #define UNBFF_SIZE      32
 #define CHUNK_SIZE      64
 
