@@ -269,19 +269,6 @@ protected:
     coFinish
     }
 
-public: 
-
-    virtual ~regex_t() noexcept {}
-
-    regex_t (): obj( new NODE() ){}
-
-    regex_t ( const string_t& reg, bool icase=false ): obj( new NODE() )
-            { obj->i = icase; obj->regex = reg; }
-
-    /*─······································································─*/
-
-    ptr_t<string_t> get_memory(){ return obj->memory.data(); }
-
     /*─······································································─*/
 
     ptr_t<ulong> _search( string_t _str, int off=0 ){
@@ -300,13 +287,27 @@ public:
         return res[0]==res[1] ? nullptr : res;
     }
 
+public: 
+
+    virtual ~regex_t() noexcept {}
+
+    regex_t (): obj( new NODE() ){}
+
+    regex_t ( const string_t& reg, bool icase=false ): obj( new NODE() )
+            { obj->i = icase; obj->regex = reg; }
+
+    /*─······································································─*/
+
+    void clear_memory() /*------*/ const noexcept { obj->memory.clear(); }
+
+    array_t<string_t> get_memory() const noexcept { return obj->memory.data(); }
+
     /*─······································································─*/
 
     ptr_t<ulong> search( string_t _str, uint off=0 ){
         ptr_t<ulong> out; while( off < _str.size() ){
-            out = _search( _str, off );
-            if( out != nullptr )
-              { break; } ++off;
+            if(( out=_search( _str, off ) ).null() )
+              { ++off; continue; } break;
         }   return out;
     }
 

@@ -18,13 +18,13 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace process { loop_t loop;
+namespace nodepp { namespace process { loop_t _loop_;
 
     /*─······································································─*/
 
-    ulong size(){ return _TASK_ + loop.size(); }
+    ulong size(){ return _TASK_ + _loop_.size(); }
 
-    void clear(){ _TASK_=0; loop.clear(); }
+    void clear(){ _TASK_=0; _loop_.clear(); }
 
     bool empty(){ return size() <= 0; }
 
@@ -34,14 +34,6 @@ namespace nodepp { namespace process { loop_t loop;
 
     bool should_close(){ return _EXIT_ || empty(); }
 
-    /*─······································································─*/
-
-    int next(){ static ulong count = 0;
-        if(( ++count % 64 )==0){ yield(); }
-    coStart
-        coWait( loop.next()==1 );
-    coStop }
-
     void clear( void* address ){
          if( address == nullptr ){ return; }
          memset( address, 0, sizeof(bool) );
@@ -49,20 +41,27 @@ namespace nodepp { namespace process { loop_t loop;
 
     /*─······································································─*/
 
+    int next(){ static ulong count = 0;
+        if(( ++count % 64 ) == 0 ){ yield(); }
+    coStart
+        coWait( _loop_.next() >= 0 );
+    coStop }
+
+    /*─······································································─*/
+
     template< class... T >
-    void* add( const T&... args ){ return loop.add( args... ); }
+    void* loop( const T&... args ){ return _loop_.add( args... ); }
+
+    template< class... T >
+    void* add ( const T&... args ){ return _loop_.add( args... ); }
+
+    /*─······································································─*/
 
     template< class T, class... V >
     void await( T cb, const V&... args ){ ++_TASK_;
-    while( !should_close() && ([&](){
-
-        switch( cb( args... ) ){
-            case  1: next(); return 1; break;
-            case  0: /*---*/ return 0; break;
-            default: /*-------------*/ break;
-        }
-
-    return -1; })()>=0 ){} --_TASK_; }
+         while( cb( args... )>=0 && !should_close() )
+              { process::next(); } 
+    --_TASK_; }
 
 }}
 
