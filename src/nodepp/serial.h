@@ -125,7 +125,7 @@ public:
         onOpen  .clear(); onPipe  .clear();
         onData  .clear(); /*-------------*/
         
-        onDrain.emit(); onClose.emit(); kill();
+        kill(); onDrain.emit(); onClose.emit();
 
     }
 
