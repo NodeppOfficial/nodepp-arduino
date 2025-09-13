@@ -54,8 +54,6 @@ void onMain(){
     ev.emit();
 
 }
-
-// note that we are using onMain() instead of main()
 ```
 
 ## Timer
@@ -77,16 +75,32 @@ void onMain(){
 }
 ```
 
+## Promises
+```cpp
+#include <nodepp/nodepp.h>
+#include <nodepp/promise.h>
+
+using namespace nodepp;
+
+void onMain(){ Serial.begin( 9600 );
+
+    promise_t<int,except_t>([=]( res_t<int> res, rej_t<except_t> rej ){
+        res( 10 );
+    })
+
+    .then([=]( int res ){ console::log( res ); })
+
+    .fail([=]( except_t err ){ console::log( err.what() ); })
+
+}
+```
 
 ### More Examples [here](https://github.com/NodeppOfficial/Nodepp/tree/main/examples)
 
-## Compatibility
+## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
 - 🔗: [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
 - 🔗: [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
- 
-## FAQ
-- 🔗 : [/r/Nodepp/](https://www.reddit.com/r/Nodepp/comments/1eaq1pu/faq_ask_anything_about_nodepp/)
   
 ## Contribution
 
