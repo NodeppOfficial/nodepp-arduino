@@ -66,8 +66,8 @@ using namespace nodepp;
 void onMain(){
 
     pinMode( 13, OUTPUT );    
-    
-    timer::interval([=](){ 
+
+    timer::interval([=](){
         static bool b=0; b=!b;
         digitalWrite( 13, b );
     }, 1000 );
@@ -95,13 +95,13 @@ void onMain(){ Serial.begin( 9600 );
 }
 ```
 
-### More Examples [here](https://github.com/NodeppOfficial/Nodepp/tree/main/examples)
+### More Examples [here](https://nodeppofficial.github.io/nodepp-doc/guide.html)
 
 ## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
 - 🔗: [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
 - 🔗: [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
-  
+
 ## Contribution
 
 If you want to contribute to **Nodepp**, you are welcome to do so! You can contribute in several ways:
