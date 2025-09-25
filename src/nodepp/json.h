@@ -57,20 +57,25 @@ protected:
     }
 
     object_t get_data( const string_t& data ) const {
+        static regex_t reg1 = regex_t( "[a-z]"   );
+        static regex_t reg2 = regex_t( "[.]\\d+" );
+        static regex_t reg3 = regex_t( "\\d+"    );
+
         ulong x=0; while( x < data.size() && data[x]==' ' ){ ++x; }
-          if( data.empty() || data[x] == ',' )         { return nullptr; }
-        elif( data[x] == '"'     )                     { return regex::match(data,"\"[^\"]+\"").slice(1,-1); }
-        elif( data[x] == '{'     )                     { return parse( data ); }
-        elif( data[x] == '['     )                     { return parse( data ); }
-        elif( data.find("false") )                     { return (bool) 0; }
-        elif( data.find("true")  )                     { return (bool) 1; }
-        elif( data.find("null")  )                     { return nullptr ; }
-        elif( regex::test(data,"[a-z]") )              { return (string_t) data; }
-        elif( data.find('.')     ){
-            if( regex::match(data,"[.]\\d+").size()>5 ){ return string::to_double(data); }
-            else                                       { return string::to_float(data);  }
-        }   elif( regex::match(data,"\\d+").size()>9 ) { return string::to_long(data);   }
-            else                                       { return string::to_int(data);    }
+          if( data.empty() || data[x] == ',' ) /*---*/ { return nullptr; }
+        elif( data[x] == '"'     ) /*---------------*/ { return data.slice(1,-1); }
+        elif( data[x] == '{'     ) /*---------------*/ { return parse( data ); }
+        elif( data[x] == '['     ) /*---------------*/ { return parse( data ); }
+        elif( data.find("false") ) /*---------------*/ { return (bool) 0; }
+        elif( data.find("true")  ) /*---------------*/ { return (bool) 1; }
+        elif( data.find("null")  ) /*---------------*/ { return nullptr ; }
+        elif( reg1.test(data) ) /*------------------*/ { return (string_t) data; }
+        elif( data.find('.')     ) /*---------------*/ {
+            if  ( reg2.match(data).size()>5 ) /*----*/ { return string::to_double(data); }
+            else /*---------------------------------*/ { return string::to_float(data);  }
+        }   elif( reg3.match(data).size()>9 ) /*----*/ { return string::to_long(data);   }
+            else /*---------------------------------*/ { return string::to_int(data);    }
+        
     }
 
     object_t get_object( ulong x, ulong y, const string_t& str ) const {
@@ -93,11 +98,11 @@ protected:
            if( string::is_space(str[x]) || str[x]==',' ){ continue; }
            if( str[x] == '{' || str[x] == '[' ){
                auto z = get_next_key( x, str );
-           if( z < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
+           if( z < 0 ){ throw except_t("Invalid JSON Format"); }
                data.push( parse(str.slice( x,z+1 )) ); x=z+1;
            } elif( str[x] == '"' ) {
                auto z = get_next_sec( x, str );
-           if( z < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
+           if( z < 0 ){ throw except_t("Invalid JSON Format"); }
                data.push( get_data(str.slice( x,z+1 )) ); x=z+1;
            } elif( x != y ) {
                ulong z=x; while( str[z]!=',' && z<y ) { ++z; }
@@ -118,7 +123,7 @@ public:
 
             if ( str[x] == '[' || str[x] == '{' || str[x] == '"' ){
                  auto pos = get_next_key( x, str );
-            if ( pos < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
+            if ( pos < 0 ){ throw except_t("Invalid JSON Format"); }
 
                 if( str[x] == '[' ) {
                     return get_array( x+1, pos, str );
@@ -129,7 +134,7 @@ public:
                 }   x = pos + 1;
 
             } elif( str[x] == ']' || str[x] == '}' || str[x] == ')' ){
-                ARDUINO_ERROR("Invalid JSON Format");
+                throw except_t("Invalid JSON Format");
             } else {
                 if( string::is_space( str[x] ) )
                   { continue; } data.push( str[x] );
@@ -149,7 +154,7 @@ public:
             for( auto &item: obj.as<QUEUE>().data() ){
                  out += string::format("\"%s\":",item.first.get());
                  out += format( item.second ); out.push(',');
-            }    out.pop();
+            }if( out[ out.size()-1 ] == ',' ){ out.pop(); }
 
             out.push('}'); goto END;
         } elif( obj.get_type_id() == 21 ){
