@@ -98,11 +98,11 @@ protected:
            if( string::is_space(str[x]) || str[x]==',' ){ continue; }
            if( str[x] == '{' || str[x] == '[' ){
                auto z = get_next_key( x, str );
-           if( z < 0 ){ throw except_t("Invalid JSON Format"); }
+           if( z < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
                data.push( parse(str.slice( x,z+1 )) ); x=z+1;
            } elif( str[x] == '"' ) {
                auto z = get_next_sec( x, str );
-           if( z < 0 ){ throw except_t("Invalid JSON Format"); }
+           if( z < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
                data.push( get_data(str.slice( x,z+1 )) ); x=z+1;
            } elif( x != y ) {
                ulong z=x; while( str[z]!=',' && z<y ) { ++z; }
@@ -123,7 +123,7 @@ public:
 
             if ( str[x] == '[' || str[x] == '{' || str[x] == '"' ){
                  auto pos = get_next_key( x, str );
-            if ( pos < 0 ){ throw except_t("Invalid JSON Format"); }
+            if ( pos < 0 ){ ARDUINO_ERROR("Invalid JSON Format"); }
 
                 if( str[x] == '[' ) {
                     return get_array( x+1, pos, str );
@@ -134,7 +134,7 @@ public:
                 }   x = pos + 1;
 
             } elif( str[x] == ']' || str[x] == '}' || str[x] == ')' ){
-                throw except_t("Invalid JSON Format");
+                ARDUINO_ERROR("Invalid JSON Format");
             } else {
                 if( string::is_space( str[x] ) )
                   { continue; } data.push( str[x] );
@@ -279,7 +279,7 @@ namespace nodepp { namespace json {
 namespace nodepp { namespace json {
     template< class... T >
     string_t stringify( const T&... args ){ 
-      return format( args... ); 
+        return format( args... ); 
     }
 }}
 

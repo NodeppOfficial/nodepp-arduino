@@ -41,10 +41,8 @@ namespace nodepp { namespace process { loop_t _loop_;
 
     /*─······································································─*/
 
-    int next(){ static ulong count = 0;
-        if(( ++count % 64 ) == 0 ){ yield(); }
-    coStart
-        coWait( _loop_.next() >= 0 );
+    int next(){ coStart
+        if( !_loop_.empty() ) { _loop_.next(); coNext; } yield();
     coStop }
 
     /*─······································································─*/
