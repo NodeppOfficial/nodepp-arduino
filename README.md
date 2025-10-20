@@ -54,8 +54,6 @@ void onMain(){
     ev.emit();
 
 }
-
-// note that we are using onMain() instead of main()
 ```
 
 ## Timer
@@ -68,8 +66,8 @@ using namespace nodepp;
 void onMain(){
 
     pinMode( 13, OUTPUT );    
-    
-    timer::interval([=](){ 
+
+    timer::interval([=](){
         static bool b=0; b=!b;
         digitalWrite( 13, b );
     }, 1000 );
@@ -77,17 +75,33 @@ void onMain(){
 }
 ```
 
+## Promises
+```cpp
+#include <nodepp/nodepp.h>
+#include <nodepp/promise.h>
 
-### More Examples [here](https://github.com/NodeppOfficial/Nodepp/tree/main/examples)
+using namespace nodepp;
 
-## Compatibility
+void onMain(){ Serial.begin( 9600 );
+
+    promise_t<int,except_t>([=]( res_t<int> res, rej_t<except_t> rej ){
+        res( 10 );
+    })
+
+    .then([=]( int res ){ console::log( res ); })
+
+    .fail([=]( except_t err ){ console::log( err.what() ); })
+
+}
+```
+
+### More Examples [here](https://nodeppofficial.github.io/nodepp-doc/guide.html)
+
+## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
 - 🔗: [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
 - 🔗: [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
- 
-## FAQ
-- 🔗 : [/r/Nodepp/](https://www.reddit.com/r/Nodepp/comments/1eaq1pu/faq_ask_anything_about_nodepp/)
-  
+
 ## Contribution
 
 If you want to contribute to **Nodepp**, you are welcome to do so! You can contribute in several ways:

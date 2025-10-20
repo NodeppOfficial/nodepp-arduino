@@ -15,13 +15,13 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define coDelay(VALUE)  do { _time_=process::millis()+VALUE; coWait( process::millis()<_time_ ); } while(0)
-#define coUDelay(VALUE) do { _time_=process::micros()+VALUE; coWait( process::micros()<_time_ ); } while(0)
+#define rand_range( A, B ) clamp( rand()%B, A, B )
+template< class T > T clamp( const T& val, const T& _min, const T& _max ){ return max( _min, min( _max, val ) ); }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define rand_range( A, B ) clamp( rand()%B, A, B )
-template< class T > T clamp( const T& val, const T& _min, const T& _max ){ return max( _min, min( _max, val ) ); }
+#define coDelay(VALUE)  do { _time_=process::millis()+VALUE; coWait( process::millis()<_time_ ); } while(0)
+#define coUDelay(VALUE) do { _time_=process::micros()+VALUE; coWait( process::micros()<_time_ ); } while(0)
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
@@ -266,6 +266,10 @@ int     _TASK_ = 0;
 #define uint   unsigned int
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+using null_t = decltype( nullptr );
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
