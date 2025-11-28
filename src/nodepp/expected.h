@@ -35,13 +35,13 @@ public:
     /*─······································································─*/
 
     T value() const { if ( !has_value() || !data.has_value() ) {
-        throw  except_t("expected does not have a value");
+        ARDUINO_ERROR("expected does not have a value");
     }   return data.as<T>(); }
 
     /*─······································································─*/
 
     E error() const { if ( has_value() || !data.has_value() ) {
-        throw  except_t("expected does not have a value");
+        ARDUINO_ERROR("expected does not have a value");
     }   return data.as<E>(); }
 
 };}

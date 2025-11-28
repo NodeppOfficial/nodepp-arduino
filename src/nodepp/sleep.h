@@ -14,14 +14,13 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-
 namespace nodepp { namespace process {
 
-    ulong seconds(){ return ::millis() / 1000; }
+    inline ulong seconds(){ return ::millis() / 1000; }
 
-    ulong  micros(){ return ::micros(); }
+    inline ulong  micros(){ return ::micros(); }
 
-    ulong  millis(){ return ::millis(); }
+    inline ulong  millis(){ return ::millis(); }
 
 }}
 
@@ -29,11 +28,11 @@ namespace nodepp { namespace process {
 
 namespace nodepp { namespace process {
 
-    void delay( ulong time ){ ::delay( time ); }
+    inline void delay( ulong time ){ ::delay( time ); }
 
-    ulong now(){ return millis(); }
+    inline ulong now(){ return millis(); }
 
-    void yield(){ delay(TIMEOUT); }
+    inline void yield(){ delay(TIMEOUT); }
 
 }}
 

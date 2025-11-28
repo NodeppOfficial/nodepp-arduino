@@ -21,7 +21,9 @@ One of the standout features of Nodepp is its 100% asynchronous architecture, po
 - 📌: Include support for **Reactive Programming** based on **Events** and **Observers**.
 - 📌: Include an **Event Loop** that can handle multiple events and tasks on a single thread.
 
-## Hello world
+## Examples
+
+### Hello world
 ```cpp
 #include <nodepp.h>
 
@@ -33,9 +35,36 @@ void onMain() {
 }
 ```
 
-## Events
+### Coroutines
 ```cpp
-#include <nodepp/nodepp.h>
+#include <nodepp.h>
+
+using namespace nodepp;
+
+void onMain() {
+
+    ptr_t<uchar> IO ({ 2, 3, 4, 5 });
+    for( auto x: IO ){ pinMode( x, OUTPUT ); }
+
+    process::add( coroutine::add( COROUTINE(){
+        static uchar pin = 0;
+    coBegin
+
+        while( true ){
+            digitalWrite( pin, LOW );
+            pin = ( pin + 1 ) % IO.size();
+            digitalWrite( pin, HIGH );
+        coDelay( 300 ); }
+
+    coFinish
+    }));
+
+}
+```
+
+### Events
+```cpp
+#include <nodepp.h>
 #include <nodepp/event.h>
 
 using namespace nodepp;
@@ -54,13 +83,11 @@ void onMain(){
     ev.emit();
 
 }
-
-// note that we are using onMain() instead of main()
 ```
 
-## Timer
+### Timer
 ```cpp
-#include <nodepp/nodepp.h>
+#include <nodepp.h>
 #include <nodepp/timer.h>
 
 using namespace nodepp;
@@ -68,8 +95,8 @@ using namespace nodepp;
 void onMain(){
 
     pinMode( 13, OUTPUT );    
-    
-    timer::interval([=](){ 
+
+    timer::interval([=](){
         static bool b=0; b=!b;
         digitalWrite( 13, b );
     }, 1000 );
@@ -77,17 +104,53 @@ void onMain(){
 }
 ```
 
+### Promises
+```cpp
+#include <nodepp.h>
+#include <nodepp/promise.h>
 
-### More Examples [here](https://github.com/NodeppOfficial/Nodepp/tree/main/examples)
+using namespace nodepp;
 
-## Compatibility
+void onMain(){ Serial.begin( 9600 );
+
+    promise_t<int,except_t>([=]( res_t<int> res, rej_t<except_t> rej ){
+        res( 10 );
+    })
+
+    .then([=]( int res ){ console::log( res ); })
+
+    .fail([=]( except_t err ){ console::log( err.what() ); })
+
+}
+```
+
+### More Examples [here](https://nodeppofficial.github.io/nodepp-doc/guide.html)
+
+## Learn By Projects
+### 3 channel Asynchronous Led Chaser
+[![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg?tile&t=1764261498303)](https://wokwi.com/projects/397439909199432705)
+
+### 3 Channel Asynchronous Counter 
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448348853985471489/thumbnail.jpg?tile&t=1764010799509)](https://wokwi.com/projects/448348853985471489)
+
+### Dining Philosophers
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448442428745256961/thumbnail.jpg?tile&t=1764005366748)](https://wokwi.com/projects/448442428745256961)
+
+### Asynchronous measurement
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448295308358068225/thumbnail.jpg?tile&t=1763835521676)](https://wokwi.com/projects/448295308358068225)
+
+### Event-Driven Button
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448281938490194945/thumbnail.jpg?tile&t=1764262506939)](https://wokwi.com/projects/448281938490194945)
+
+## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
 - 🔗: [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
 - 🔗: [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
- 
-## FAQ
-- 🔗 : [/r/Nodepp/](https://www.reddit.com/r/Nodepp/comments/1eaq1pu/faq_ask_anything_about_nodepp/)
-  
+
 ## Contribution
 
 If you want to contribute to **Nodepp**, you are welcome to do so! You can contribute in several ways:

@@ -31,40 +31,42 @@ namespace nodepp { namespace console {
 
     template< class... T >
     int pout( const T&... args ){ return conio::log( args... ); }
+    
+    /*─······································································─*/
 
-    void wait(){ char x; conio::scan("%c",&x); }
+    inline void enable( uint port ){ Serial.begin( port ); }
 
-    void clear(){ conio::clear(); }
+    inline void wait(){ char x; conio::scan("%c",&x); }
     
     /*─······································································─*/
 
     template< class... T >
     int warning( const T&... args ){ 
-        conio::warn("WARNING: ");
+        conio::log( "WARNING: ");
         return log( args... ); 
     }
 
     template< class... T >
     int success( const T&... args ){ 
-        conio::done("SUCCESS: ");
+        conio::log( "SUCCESS: ");
         return log( args... );  
     }
 
     template< class... T >
     int error( const T&... args ){ 
-        conio::error("ERROR: "); 
+        conio::log( "ERROR: "); 
         return log( args... ); 
     }
 
     template< class... T >
     int done( const T&... args ){ 
-        conio::done("DONE: "); 
+        conio::log( "DONE: "); 
         return log( args... ); 
     }
 
     template< class... T >
     int info( const T&... args ){ 
-        conio::info("INFO: "); 
+        conio::log( "INFO: "); 
         return log( args... ); 
     }
 

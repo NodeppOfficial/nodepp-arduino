@@ -82,15 +82,15 @@ namespace nodepp {
                     auto x = self->obj->queue.get();
                 if( x==nullptr ){ break; }
 
-                conio::done("TEST:> "); conio::log( x->data.name );
+                conio::log("TEST:> "); conio::log( x->data.name );
                 c = x->data.callback(); if ( c == 1 ){
-                    conio::done( " PASSED\n" ); 
+                    conio::log( " PASSED\n" ); 
                     self->onDone.emit();
                 } elif ( c == -1 ) {
-                    conio::error( " FAILED\n" ); 
+                    conio::log( " FAILED\n" ); 
                     self->onFail.emit();
                 } else {
-                    conio::warn( " SKIPPED\n" ); 
+                    conio::log( " SKIPPED\n" ); 
                     self->onSkip.emit();
                 }   
 
@@ -118,15 +118,15 @@ namespace nodepp {
                     auto x = self->obj->queue.get();
                 if( x==nullptr ){ break; }
 
-                conio::done("TEST:> "); conio::log( x->data.name );
+                conio::log("TEST:> "); conio::log( x->data.name );
                 c = x->data.callback(); if ( c == 1 ){
-                    conio::done( " PASSED\n" ); 
+                    conio::log( " PASSED\n" ); 
                     self->onDone.emit();
                 } elif ( c == -1 ) {
-                    conio::error( " FAILED\n" ); 
+                    conio::log( " FAILED\n" ); 
                     self->onFail.emit();
                 } else {
-                    conio::warn( " SKIPPED\n" ); 
+                    conio::log( " SKIPPED\n" ); 
                     self->onSkip.emit();
                 }   
 

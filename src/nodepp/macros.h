@@ -11,17 +11,25 @@
 
 #ifndef NODEPP_MACROS
 #define NODEPP_MACROS
-#define ARDUINO_ERROR(...) do { console::error(__VA_ARGS__); exit(1); } while(0);
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define coDelay(VALUE)  do { _time_=process::millis()+VALUE; coWait( process::millis()<_time_ ); } while(0)
-#define coUDelay(VALUE) do { _time_=process::micros()+VALUE; coWait( process::micros()<_time_ ); } while(0)
+#define ARDUINO_RESET()    do { void(*callback) (void) = 0; /*-*/ callback(); } while(0)
+#ifndef ARDUINO_ALLOW_EXCEPTION
+#define ARDUINO_ERROR(...) do { console::error(__VA_ARGS__); ARDUINO_RESET(); } while(0)
+#else
+#define ARDUINO_ERROR(...) throw except_t( __VA_ARGS__ )
+#endif
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #define rand_range( A, B ) clamp( rand()%B, A, B )
 template< class T > T clamp( const T& val, const T& _min, const T& _max ){ return max( _min, min( _max, val ) ); }
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+#define coDelay(VALUE)  do { _time_=process::millis()+VALUE; coWait( process::millis()<_time_ ); } while(0)
+#define coUDelay(VALUE) do { _time_=process::micros()+VALUE; coWait( process::micros()<_time_ ); } while(0)
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
@@ -266,6 +274,10 @@ int     _TASK_ = 0;
 #define uint   unsigned int
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+using null_t = decltype( nullptr );
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
