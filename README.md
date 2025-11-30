@@ -127,24 +127,29 @@ void onMain(){ Serial.begin( 9600 );
 ### More Examples [here](https://nodeppofficial.github.io/nodepp-doc/guide.html)
 
 ## Learn By Projects
-### 3 channel Asynchronous Led Chaser
-[![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg?tile&t=1764261498303)](https://wokwi.com/projects/397439909199432705)
-
-### 3 Channel Asynchronous Counter 
-
-[![IMAGE](https://thumbs.wokwi.com/projects/448348853985471489/thumbnail.jpg?tile&t=1764010799509)](https://wokwi.com/projects/448348853985471489)
-
-### Dining Philosophers
-
-[![IMAGE](https://thumbs.wokwi.com/projects/448442428745256961/thumbnail.jpg?tile&t=1764005366748)](https://wokwi.com/projects/448442428745256961)
-
-### Asynchronous measurement
-
-[![IMAGE](https://thumbs.wokwi.com/projects/448295308358068225/thumbnail.jpg?tile&t=1763835521676)](https://wokwi.com/projects/448295308358068225)
 
 ### Event-Driven Button
 
-[![IMAGE](https://thumbs.wokwi.com/projects/448281938490194945/thumbnail.jpg?tile&t=1764262506939)](https://wokwi.com/projects/448281938490194945)
+[![IMAGE](https://thumbs.wokwi.com/projects/448281938490194945/thumbnail.jpg)](https://wokwi.com/projects/448281938490194945)
+
+### Dining Philosophers
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448442428745256961/thumbnail.jpg)](https://wokwi.com/projects/448442428745256961)
+
+### Asynchronous measurement
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448295308358068225/thumbnail.jpg)](https://wokwi.com/projects/448295308358068225)
+
+### Asynchronous Traffic Light
+
+[![IMAGE](https://thumbs.wokwi.com/projects/449004059236124673/thumbnail.jpg)](https://wokwi.com/projects/449004059236124673)
+
+### 3 Channel Asynchronous Counter 
+
+[![IMAGE](https://thumbs.wokwi.com/projects/448348853985471489/thumbnail.jpg)](https://wokwi.com/projects/448348853985471489)
+
+### 3 channel Asynchronous Led Chaser
+[![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg)](https://wokwi.com/projects/397439909199432705)
 
 ## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
