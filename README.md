@@ -128,6 +128,9 @@ void onMain(){ Serial.begin( 9600 );
 
 ## Learn By Projects
 
+### 3 channel Asynchronous Led Chaser
+[![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg)](https://wokwi.com/projects/397439909199432705)
+
 ### LCD 16x2 Async Task
 
 [![IMAGE](https://thumbs.wokwi.com/projects/449159602715398145/thumbnail.jpg)](https://wokwi.com/projects/449159602715398145)
@@ -152,8 +155,8 @@ void onMain(){ Serial.begin( 9600 );
 
 [![IMAGE](https://thumbs.wokwi.com/projects/448348853985471489/thumbnail.jpg)](https://wokwi.com/projects/448348853985471489)
 
-### 3 channel Asynchronous Led Chaser
-[![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg)](https://wokwi.com/projects/397439909199432705)
+### Enigma Machine
+[![IMAGE](https://thumbs.wokwi.com/projects/449104127751150593/thumbnail.jpg)](https://wokwi.com/projects/449104127751150593)
 
 ## Nodepp Supports Other Platforms Too
 - 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
