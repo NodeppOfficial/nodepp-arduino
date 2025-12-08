@@ -28,14 +28,14 @@ public: debug_t() noexcept : obj(new NODE()) { }
 
     virtual ~debug_t() noexcept { 
         if ( obj.count() == 2 )
-           { console::log( obj->msg, "closed" ); }    
+           { console::log( obj->msg, MEMSTR( "closed" ) ); }    
     }
     
     /*─······································································─*/
     
     debug_t( const string_t& msg ) noexcept : obj(new NODE()) {
         obj->msg = msg; auto inp = type::bind( this );
-	               console::log( obj->msg, "open" );
+	               console::log( obj->msg, MEMSTR("open") );
     }
     
     /*─······································································─*/

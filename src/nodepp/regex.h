@@ -35,8 +35,8 @@ protected:
                 obj->regex[_pos] == '('
              ){ _pos = get_next_key( _pos ); continue; }
             if( obj->regex[_pos] == '\\' ){ ++_pos; } ++_pos;
-        }   
-        
+        }
+
     return out; }
 
     int get_next_key( ulong _pos ){
@@ -230,12 +230,12 @@ protected:
 
             if( obj->regex[pos[0]] == ']' || obj->regex[pos[0]] == '{' ||
                 obj->regex[pos[0]] == '}' || obj->regex[pos[0]] == ')'
-            ) { ARDUINO_ERROR(string::format( "regex: %d %c",pos[0], obj->regex[pos[0]] )); }
+            ) { ARDUINO_ERROR(string::format( MEMSTR( "regex: %d %c" ),pos[0], obj->regex[pos[0]] )); }
 
             elif( obj->regex[pos[0]] == '(' || obj->regex[pos[0]] == '[' ){
                  auto npos = get_next_key( pos[0] );
             if ( npos < 0 )
-               { ARDUINO_ERROR(string::format( "regex: %d %c", pos[0], obj->regex[pos[0]] )); }
+               { ARDUINO_ERROR(string::format( MEMSTR( "regex: %d %c" ), pos[0], obj->regex[pos[0]] )); }
                  obj->_data = obj->regex.slice( pos[0], npos ); pos[0] = npos;
             }
 
@@ -287,9 +287,9 @@ protected:
         return res[0]==res[1] ? nullptr : res;
     }
 
-public: 
+public:
 
-    virtual ~regex_t() noexcept {}
+    virtual ~regex_t() noexcept { clear_memory(); }
 
     regex_t (): obj( new NODE() ){}
 
@@ -326,7 +326,7 @@ public:
 
     array_t<string_t> split( const string_t& _str ){ ulong n = 0;
         auto idx = search_all( _str ); queue_t<string_t> out;
-        if ( idx.empty()  ){ return out.data(); }
+        if ( idx.empty()  ){ out.push(_str); return out.data(); }
         for( auto x : idx ){
              out.push( _str.slice( n, x[0] ) ); n = x[1];
         }    out.push( _str.slice( n ) ); return out.data();
@@ -395,49 +395,49 @@ public:
 
 namespace nodepp { namespace regex {
 
-    string_t remove( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline string_t remove( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.remove( _str );
     }
 
     /*─······································································─*/
 
-    string_t replace_all( const string_t& _str, const string_t& _reg, const string_t& _rep, bool _flg=false ){
+    inline string_t replace_all( const string_t& _str, const string_t& _reg, const string_t& _rep, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.replace_all( _str, _rep );
     }
 
     /*─······································································─*/
 
-    string_t remove_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline string_t remove_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.remove_all( _str );
     }
 
     /*─······································································─*/
 
-    array_t<ptr_t<ulong>> search_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline array_t<ptr_t<ulong>> search_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.search_all( _str );
     }
 
     /*─······································································─*/
 
-    string_t replace( const string_t& _str, const string_t& _reg, const string_t& _rep, bool _flg=false ){
+    inline string_t replace( const string_t& _str, const string_t& _reg, const string_t& _rep, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.replace( _str, _rep );
     }
 
     /*─······································································─*/
 
-    array_t<string_t> get_memory( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline array_t<string_t> get_memory( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); reg.search_all( _str ); return reg.get_memory();
     }
 
     /*─······································································─*/
 
-    array_t<string_t> match_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline array_t<string_t> match_all( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.match_all( _str );
     }
 
     /*─······································································─*/
 
-    ptr_t<ulong> search( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline ptr_t<ulong> search( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.search( _str );
     }
 
@@ -449,17 +449,17 @@ namespace nodepp { namespace regex {
 
     /*─······································································─*/
 
-    bool test( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline bool test( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.test( _str );
     }
 
     /*─······································································─*/
 
-    array_t<string_t> split( const string_t& _str, char ch ){ return string::split( _str, ch ); }
+    inline array_t<string_t> split( const string_t& _str, char ch ){ return string::split( _str, ch ); }
 
-    array_t<string_t> split( const string_t& _str, int ch ){ return string::split( _str, ch ); }
+    inline array_t<string_t> split( const string_t& _str, int ch ){ return string::split( _str, ch ); }
 
-    array_t<string_t> split( const string_t& _str, const string_t& _reg, bool _flg=false ){
+    inline array_t<string_t> split( const string_t& _str, const string_t& _reg, bool _flg=false ){
           if ( _reg.size ()== 1 ){ return string::split( _str, _reg[0] ); }
         elif ( _reg.empty() )    { return string::split( _str, 1 ); }
         regex_t reg( _reg, _flg ); return reg.split( _str );
@@ -467,26 +467,29 @@ namespace nodepp { namespace regex {
 
     /*─······································································─*/
 
-    template< class T, class... V > 
+    template< class T, class... V >
     string_t join( const string_t& c, const T& argc, const V&... args ){
         return string::join( c, argc, args... );
     }
 
     /*─······································································─*/
 
-    template< class... T > 
+    template< class... T >
     string_t format( const string_t& val, const T&... args ){
         auto count = string::count( []( string_t ){ return true; }, args... );
-        queue_t<string_t> out; ulong idx=0;
-        string_t ptt = "\\$\\{\\d+\\}";
 
-        for( auto &x: search_all( val, ptt ) ){
-        auto y = string::to_uint( regex::match( val.slice( x[0], x[1] ), "\\d+" ) );
+        static regex_t reg0( MEMSTR( "\\$\\{\\d+\\}" ) );
+        static regex_t reg1( MEMSTR( "\\d+" ) );
+        
+        queue_t<string_t> out; ulong idx=0;
+
+        for( auto &x: reg0.search_all( val ) ){
+        auto y = string::to_uint( reg1.match( val.slice( x[0], x[1] ) ) );
         if ( y >= count ){ break; }
              out.push( val.slice( idx, x[0]    ) );
              out.push( string::get( y, args... ) ); idx = x[1];
         }    out.push( val.slice( idx ) );
-        
+
         return array_t<string_t>( out.data() ).join("");
     }
 
