@@ -4,6 +4,8 @@ Nodepp is a groundbreaking open-source project that simplifies C++ application d
 
 One of the standout features of Nodepp is its 100% asynchronous architecture, powered by an internal Event Loop. This design efficiently manages Nodepp’s tasks, enabling you to develop scalable and concurrent applications with minimal code. Experience the power and flexibility of Nodepp as you streamline your development process and create robust applications effortlessly!
 
+🔗: [Nodepp The MOST Powerful Framework for Asynchronous Programming in C++](https://medium.com/p/c01b84eee67a)
+
 ## Features
 
 - 📌: **Node.js-like API:** Write C++ code in a syntax and structure similar to Node.js, making it easier to learn and use.
@@ -177,5 +179,4 @@ If you want to contribute to **Nodepp**, you are welcome to do so! You can contr
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/edbc_repo)
 
 ## License
-
-**Nodepp** is distributed under the MIT License. See the LICENSE file for more details.
+**Nodepp-arduino** is distributed under the MIT License. See the LICENSE file for more details.
