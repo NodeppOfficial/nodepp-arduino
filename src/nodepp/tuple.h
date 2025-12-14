@@ -60,7 +60,7 @@ namespace tuple {
 
     template <ulong Index, typename... Types>
     typename tuple_element<Index, Types...>::type& get(const tuple_t<Types...>& tuple) {
-        static_assert( Index < sizeof...(Types), "Index out of bounds in tuple get" );
+        static_assert( Index < sizeof...(Types), MEMSTR( "Index out of bounds in tuple get" ) );
         return get_helper<Index, Types...>::get(tuple);
     }
 

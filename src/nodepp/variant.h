@@ -48,7 +48,7 @@ protected:
     int is_valid( T /*unused*/ ) { 
         int idx = get_index<T,Types...>::value;
         if( idx > (int) sizeof...(Types) ){
-            ARDUINO_ERROR("invalid data type");
+            ARDUINO_ERROR( MEMSTR( "invalid data type" ) );
         }   return idx;
     }
     

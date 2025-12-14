@@ -14,23 +14,42 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "file.h"
 #include "event.h"
 #include "generator.h"
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 namespace nodepp { class serial_t {
-private:
+protected:
 
-    void kill() const noexcept { Serial.end(); }
+    void kill() const noexcept { 
+        obj->state |= FILE_STATE::KILL;
+        Serial.end(); 
+    }
+
+    bool is_state( uchar value ) const noexcept {
+        if( obj->state & value ){ return true; }
+    return false; }
+
+    void set_state( uchar value ) const noexcept {
+    if( obj->state & KILL ){ return; }
+        obj->state = value;
+    }
+
+    enum FILE_STATE {
+        UNKNOWN = 0b00000000,
+        OPEN    = 0b00000001,
+        CLOSE   = 0b00000010,
+        KILL    = 0b00000100,
+        REUSE   = 0b00001000,
+        DISABLE = 0b00001110
+    };
 
 protected:
 
     struct NODE {
+        uchar        state    = FILE_STATE::OPEN;
         ulong        range[2] = { 0, 0 };
-        bool         keep     = false;
-        int          state    = 0;
         int          feof     = 1;
         ptr_t<char>  buffer;
         string_t     borrow;
@@ -43,7 +62,6 @@ public:
     event_t<except_t>  onError;
     event_t<>          onDrain;
     event_t<>          onClose;
-    event_t<>          onStop;
     event_t<>          onOpen;
     event_t<>          onPipe;
     event_t<string_t>  onData;
@@ -58,35 +76,34 @@ public:
         Serial.begin( port ); set_buffer_size( _size );
     }
     
-    serial_t() noexcept : obj( new NODE() ) {}
+    serial_t( const ulong& _size=CHUNK_SIZE ) noexcept : obj( new NODE() ) { 
+        set_buffer_size( _size ); 
+    }
 
     /*─······································································─*/
 
-    bool     is_closed() const noexcept { return obj->state <  0 ||  is_feof() || obj->fd == -1; }
-    bool       is_feof() const noexcept { return obj->feof  <= 0 && obj->feof  != -2; }
-    bool  is_available() const noexcept { return obj->state >= 0 && !is_closed(); }
-    bool is_persistent() const noexcept { return obj->keep; }
+    bool     is_closed() const noexcept { return is_state(FILE_STATE::DISABLE) || is_feof(); }
+    bool       is_feof() const noexcept { return obj->feof <= 0 && obj->feof != -2; }
+    bool  is_available() const noexcept { return !is_closed(); }
 
     /*─······································································─*/
 
-    void  resume() const noexcept { if(obj->state== 0) { return; } obj->state= 0; onResume.emit(); }
-    void    stop() const noexcept { if(obj->state==-3) { return; } obj->state=-3; onStop  .emit(); }
-    void   reset() const noexcept { if(obj->state!=-2) { return; } resume(); pos(0); }
+    void  resume() const noexcept { if(is_state(FILE_STATE::OPEN )){ return; } set_state(FILE_STATE::OPEN ); onResume.emit(); }
+    void    stop() const noexcept { if(is_state(FILE_STATE::REUSE)){ return; } set_state(FILE_STATE::REUSE); onDrain .emit(); }
+    void   reset() const noexcept { if(is_state(FILE_STATE::KILL )){ return; } resume(); pos(0); }
     void   flush() const noexcept { obj->buffer.fill(0); }
 
     /*─······································································─*/
 
     void close() const noexcept {
-        if( obj->state< 0 ){ return; }
-        if( obj->keep== 1 ){ stop(); goto DONE; }
-            obj->state=-1; DONE:; onDrain.emit();
-    }
+        if( is_state (FILE_STATE::DISABLE) ){ return; }
+            set_state( FILE_STATE::CLOSE ); DONE:;
+    onDrain.emit(); free(); }
 
     /*─······································································─*/
 
     void   set_range( ulong /*unused*/, ulong /*unused*/ ) const noexcept { }
     ulong* get_range() const noexcept { return nullptr; }
-    int    get_state() const noexcept { return obj == nullptr ? -1 : obj->state; }
     int       get_fd() const noexcept { return 1; }
 
     /*─······································································─*/
@@ -116,17 +133,15 @@ public:
     /*─······································································─*/
 
     virtual void free() const noexcept {
-
-        if( obj->state == -3 && obj.count() > 1 ){ resume(); return; }
-        if( obj->state == -2 ){ return; } obj->state = -2;
+        
+        if( is_state( FILE_STATE::REUSE ) && obj.count()>1 ){ resume(); return; }
+        if( is_state( FILE_STATE::KILL  ) ){ return; }
+        if(!is_state( FILE_STATE::CLOSE ) ){ kill(); onDrain.emit(); } else { kill(); }
        
         onUnpipe.clear(); onResume.clear();
-        onError .clear(); onStop  .clear();
-        onOpen  .clear(); onPipe  .clear();
-        onData  .clear(); /*-------------*/
+        onError .clear(); onData  .clear();
+        onOpen  .clear(); onPipe  .clear(); onClose.emit();
         
-        kill(); onDrain.emit(); onClose.emit();
-
     }
 
     /*─······································································─*/

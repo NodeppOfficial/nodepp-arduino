@@ -14,8 +14,8 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "file.h"
 #include "event.h"
+#include "serial.h"
 #include "generator.h"
 
 /*────────────────────────────────────────────────────────────────────────────*/
@@ -57,14 +57,16 @@ namespace nodepp { namespace stream {
     
     template< class T, class V >
     ulong await( const T& fa, const V& fb ){ 
-        ulong out; /*-----------*/ generator::stream::pipe _read;
-        while( fa.is_available() ){ out += fb.write( fa.read() ); } 
+        ulong out; /*-----------*/ generator::stream::pipe arg;
+        fa.onData([&]( string_t data ){ out += data.size(); });
+        process::await( arg, fa, fb );
     return out; }
     
     template< class T >
     string_t await( const T& fp ){ 
-        queue_t<string_t> out; generator::stream::pipe _read;
-        while( fp.is_available() ){ out.push( fp.read() ); } 
+        queue_t<string_t> out; generator::stream::pipe arg;
+        fp.onData([&]( string_t data ){ out.push(data); });
+        process::await( arg, fp );
     return array_t<string_t>( out.data() ).join(""); }
 
 }}
