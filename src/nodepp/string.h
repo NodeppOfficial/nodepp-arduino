@@ -20,7 +20,7 @@ namespace nodepp {
 
 namespace string {
 
-    inline bool   is_hex( uchar c ){ return ((c>='0' && c<='9') ||(c>='A'  && c<='F' ) || ( c>='a' && c<='f'  ) ); }
+    inline bool is_hex  ( uchar c ){ return ((c>='0' && c<='9') ||(c>='A'  && c<='F' ) || ( c>='a' && c<='f'  ) ); }
     inline bool is_space( uchar c ){ return ( c==' ' || c=='\t' || c=='\n' || c=='\r'  ||   c=='\f'|| c=='\v' ); }
     inline bool is_alpha( uchar c ){ return ((c>='A' && c<='Z') ||(c>='a'  && c<='z' ) ); }
     inline bool is_graph( uchar c ){ return ( c>=33  && c<=126  && c!=' ' ); }
@@ -29,24 +29,24 @@ namespace string {
     inline bool is_digit( uchar c ){ return ( c>='0' && c<='9' ); }
     inline bool is_print( uchar c ){ return ( c>=32  && c<=127 ); }
     inline bool is_contr( uchar c ){ return ( c< 32  || c==127 ); }
-    inline bool  is_null( uchar c ){ return ( c=='\0'); }
+    inline bool is_null ( uchar c ){ return ( c=='\0'); }
     inline bool is_ascii( uchar c ){ return ( c<=127 ); }
 
     /*─······································································─*/
 
-    ptr_t<char> buffer( ulong n ){
+    inline ptr_t<char> buffer( ulong n ){
         if ( n == 0 ){ return nullptr; }
         auto b = ptr_t<char>( n+1,'\0' ); return b;
     }
 
-    ptr_t<char> buffer( const char* c, ulong n ){
+    inline ptr_t<char> buffer( const char* c, ulong n ){
         if ( c == nullptr ){ return nullptr; }
         if ( n == 0 ){ return nullptr; }
         auto b = ptr_t<char>( n+1,'\0' );
         memcpy( &b, c, n ); return b;
     }
 
-    ptr_t<char> buffer( ulong n, const char& c ){
+    inline ptr_t<char> buffer( ulong n, const char& c ){
         if ( n == 0 ){ return nullptr; }
         auto b = ptr_t<char>( n+1,'\0' );
         memset( &b, c, n ); return b;
@@ -75,7 +75,7 @@ protected:
 
     ptr_t<char> buffer;
 
-    type::optional<ulong[3]> get_slice_range( long x, long y ) const noexcept {
+    ptr_t<ulong> get_slice_range( long x, long y ) const noexcept {
 
         if( empty() || x == y ){ return nullptr; } if( y>0 ){ --y; }
 
@@ -87,13 +87,11 @@ protected:
         ulong b = clamp( first() + x, 0UL, a      );
         ulong c = a - b + 1;
 
-        ulong arr[3]; /*-----------------------*/
-              arr[0] = b; arr[1] = a; arr[2] = c;
-
-        return arr;
+        ptr_t<ulong> arr ( 3UL, 0UL ); 
+        arr[0] = b; arr[1] = a; arr[2] = c; return arr;
     }
 
-    type::optional<ulong[3]> get_splice_range( long x, ulong y ) const noexcept {
+    ptr_t<ulong> get_splice_range( long x, ulong y ) const noexcept {
 
         if( empty() || y == 0 ){ return nullptr; }
 
@@ -105,10 +103,8 @@ protected:
         ulong b = clamp( first() + x, 0UL, a      );
         ulong c = a - b + 1;
 
-        ulong arr[3]; /*-----------------------*/
-              arr[0] = b; arr[1] = a; arr[2] = c;
-
-        return arr;
+        ptr_t<ulong> arr ( 3UL, 0UL ); 
+        arr[0] = b; arr[1] = a; arr[2] = c; return arr;
     }
 
 public:
@@ -368,20 +364,20 @@ public:
 
     void erase( ulong index ) noexcept {
 	    auto r = get_slice_range( index, size() );
-        if( !r.has_value() ){ return; } else {
-            auto z = *r.get(); auto n_buffer = string::buffer( size() - 1 );
-            memcpy( &n_buffer+z[0], &buffer+z[0]+1, size()-z[0]-1 );
-            memcpy( &n_buffer     , &buffer       , z[0] );
+        if ( r.null() ){ return; } else {
+            auto n_buffer = string::buffer( size() - 1 );
+            memcpy( &n_buffer+r[0], &buffer+r[0]+1, size()-r[0]-1 );
+            memcpy( &n_buffer     , &buffer       , r[0] );
             buffer = n_buffer;
         }
     }
 
     void erase( ulong start, ulong stop  ) noexcept {
 	    auto r = get_slice_range( start, stop );
-        if( !r.has_value() ){ return; } else {
-            auto z = *r.get(); auto n_buffer = string::buffer( size() - z[2] );
-            memcpy( &n_buffer+z[0], &buffer+z[1]+1, size()-z[1]-1 );
-            memcpy( &n_buffer     , &buffer       , z[0] );
+        if ( r.null() ){ return; } else {
+            auto n_buffer = string::buffer( size() - r[2] );
+            memcpy( &n_buffer+r[0], &buffer+r[1]+1, size()-r[1]-1 );
+            memcpy( &n_buffer     , &buffer       , r[0] );
             buffer = n_buffer;
         }
     }
@@ -391,11 +387,9 @@ public:
     string_t slice( long start ) const noexcept {
 
         auto r = get_slice_range( start, size() );
-        if( !r.has_value() ){ return nullptr; }
+        if ( r.null() ){ return nullptr; }
         
-        auto z = *r.get(); /*------------------------------*/
-        auto n_buffer = string_t( buffer.data()+z[0], z[2] );
-        
+        auto   n_buffer = string_t( buffer.data()+r[0], r[2] );
         return n_buffer;
 
     }
@@ -405,11 +399,9 @@ public:
     string_t slice( long start, long stop ) const noexcept {
 
         auto r = get_slice_range( start, stop );
-        if( !r.has_value() ){ return nullptr; }
+        if ( r.null() ){ return nullptr; }
 
-        auto z = *r.get(); /*------------------------------*/
-        auto n_buffer = string_t( buffer.data()+z[0], z[2] );
-
+        auto   n_buffer = string_t( buffer.data()+r[0], r[2] );
         return n_buffer;
     }
 
@@ -418,23 +410,19 @@ public:
     string_t splice( long start, ulong stop ) noexcept {
 
         auto r = get_splice_range( start, stop );
-        if( !r.has_value() ){ return nullptr; }
+        if ( r.null() ){ return nullptr; }
 
-        auto z = *r.get(); /*------------------------------*/
-        auto n_buffer = string_t( buffer.data()+z[0], z[2] );
-
-        erase( z[0], z[0]+z[2] ); return n_buffer;
+        auto n_buffer = string_t( buffer.data()+r[0], r[2] );
+        erase( r[0], r[0]+r[2] ); return n_buffer;
     }
 
     string_t splice( long start, ulong stop, string_t value ) noexcept {
 
         auto r = get_splice_range( start, stop );
-        if( !r.has_value() ){ return nullptr; }
+        if ( r.null() ){ return nullptr; }
 
-        auto z = *r.get(); /*------------------------------*/
-        auto n_buffer = string_t( buffer.data()+z[0], z[2] );
-
-        erase( z[0], z[0]+z[2] ); insert( z[0], value ); return n_buffer;
+        auto n_buffer = string_t( buffer.data()+r[0], r[2] );
+        erase( r[0], r[0]+r[2] ); insert( r[0], value ); return n_buffer;
     }
 
     /*─······································································─*/
@@ -517,68 +505,68 @@ namespace string {
 
     inline int to_int( const string_t& buffer ){
         int out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%d", &out ); return out;
+        sscanff( (char*) buffer, "%d", &out ); return out;
     }
 
     inline bool to_bool( const string_t& buffer ){
         int out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%d", &out ); return out;
+        sscanff( (char*) buffer, "%d", &out ); return out;
     }
 
     inline ldouble to_ldouble( const string_t& buffer ){
         ldouble out=0.0f; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%Lf", &out ); return out;
+        sscanff( (char*) buffer, "%Lf", &out ); return out;
     }
 
     inline double to_double( const string_t& buffer ){
         double out=0.0f; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%lf", &out ); return out;
+        sscanff( (char*) buffer, "%lf", &out ); return out;
     }
 
     inline float to_float( const string_t& buffer ){
         float out=0.0f; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%f", &out ); return out;
+        sscanff( (char*) buffer, "%f", &out ); return out;
     }
 
     inline char to_char( const string_t& buffer ){
         char out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%c", &out ); return out;
+        sscanff( (char*) buffer, "%c", &out ); return out;
     }
 
     inline uint to_uint( const string_t& buffer ){
         uint out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%u", &out ); return out;
+        sscanff( (char*) buffer, "%u", &out ); return out;
     }
 
     inline void* to_addr( const string_t& buffer ){
         void* out=nullptr; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%p", &out ); return out;
+        sscanff( (char*) buffer, "%p", &out ); return out;
     }
 
     inline wchar to_wchar( const string_t& buffer ){
         wchar out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%lc", &out ); return out;
+        sscanff( (char*) buffer, "%lc", &out ); return out;
     }
 
     inline long to_long( const string_t& buffer ){
         long out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%ld", &out ); return out;
+        sscanff( (char*) buffer, "%ld", &out ); return out;
     }
 
     inline llong to_llong( const string_t& buffer ){
         llong out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%lld", &out ); return out;
+        sscanff( (char*) buffer, "%lld", &out ); return out;
     }
 
 
     inline ulong to_ulong( const string_t& buffer ){
         ulong out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%lu", &out ); return out;
+        sscanff( (char*) buffer, "%lu", &out ); return out;
     }
 
     inline ullong to_ullong( const string_t& buffer ){
         ullong out=0; if( buffer.empty() ){ return out; }
-        sscanf( (char*) buffer, "%llu", &out ); return out;
+        sscanff( (char*) buffer, "%llu", &out ); return out;
     }
 
     /*─······································································─*/
@@ -592,7 +580,7 @@ namespace string {
 
     template< class... T >
     int parse( const string_t& data, const string_t& str, const T&... args ){
-        return sscanf( (char*)data, (char*)str, args... );
+        return sscanff( (char*)data, (char*)str, args... );
     }
 
     /*─······································································─*/

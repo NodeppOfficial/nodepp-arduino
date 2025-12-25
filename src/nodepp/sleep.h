@@ -28,6 +28,18 @@ namespace nodepp { namespace process {
 
 namespace nodepp { namespace process {
 
+    inline ulong set_timeout( int time=0 ) { 
+        if( time == -1 ) /*------------*/ { return 0; }
+    thread_local static ulong stamp; ulong out=stamp;
+        if( stamp > time || stamp == 0 ){ stamp=time; }
+    return out==0 ? 0 : out; }
+
+}}
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { namespace process {
+
     inline void delay( ulong time ){ ::delay( time ); }
 
     inline ulong now(){ return millis(); }

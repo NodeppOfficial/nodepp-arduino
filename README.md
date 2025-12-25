@@ -1,4 +1,8 @@
 # Nodepp-Arduino
+> **The DOOM of Async Frameworks: Write Once, Build Everywhere, Process Everything.**
+
+[![Platform](https://img.shields.io/badge/platform-Arduino%20|%20ESP32%20|%20ESP8266%20|%20STM32-blue)](https://github.com/NodeppOfficial/nodepp-arduino)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Nodepp is a groundbreaking open-source project that simplifies C++ application development by bridging the gap between the language's raw power and the developer-friendly abstractions of Node.js. By providing a high-level API, Nodepp empowers developers to write C++ code in a familiar, Node.js-inspired style.
 
@@ -14,7 +18,7 @@ One of the standout features of Nodepp is its 100% asynchronous architecture, po
 - 📌: **Scalability:** Build applications that can handle large workloads and grow with your needs.
 - 📌: **Open-source:** Contribute to the project's development and customize it to your specific requirements.
 
-## Bateries Included
+## Batteries Included
 
 - 📌: Include a **build-in JSON** parser / stringify system.
 - 📌: Include a **build-in RegExp** engine for processing text strings.
