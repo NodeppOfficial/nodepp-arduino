@@ -55,7 +55,7 @@ protected:
     ptr_t<int> get_rep( int pos, int npos ){
         ptr_t<int> rep ({ 0, 0 }); bool b=0; string_t num[2];
 
-        obj->regex.slice( pos+1, npos ).map([&]( char& data ){
+        obj->regex.slice_view( pos+1, npos ).map([&]( char& data ){
               if(!string::is_digit(data) ){ b =! b; }
             elif( string::is_digit(data) ){ num[b].push(data); }
         });
@@ -100,7 +100,7 @@ protected:
             } elif( (uchar) obj->_data[0] == '[' ){
 
                 auto    x = obj->_data[1] == '^' ? 2 : 1;
-                auto list = compile_range(obj->_data.slice(x));
+                auto list = compile_range(obj->_data.slice_view(x));
 
                   if ( x == 2 && list.none([&]( char itm ){ return _str_ == itm; }))
                      { ++off[1]; goto LESS; }
@@ -193,8 +193,7 @@ protected:
 
     /*─······································································─*/
 
-    string_t compile_range( string_t nreg ){
-        queue_t<char> reg;
+    string_t compile_range( string_t nreg ){ queue_t<char> reg;
 
         for( ulong x=0; x<nreg.size(); ++x ){
             if ( nreg[x]=='\\' ){ ++x;
@@ -324,6 +323,14 @@ public:
 
     /*─······································································─*/
 
+    array_t<string_t> split_view( const string_t& _str ){ ulong n = 0;
+        auto idx = search_all( _str ); queue_t<string_t> out;
+        if ( idx.empty()  ){ out.push(_str); return out.data(); }
+        for( auto x : idx ){
+             out.push( _str.slice_view( n, x[0] ) ); n = x[1];
+        }    out.push( _str.slice_view( n ) ); return out.data();
+    }
+
     array_t<string_t> split( const string_t& _str ){ ulong n = 0;
         auto idx = search_all( _str ); queue_t<string_t> out;
         if ( idx.empty()  ){ out.push(_str); return out.data(); }
@@ -451,6 +458,20 @@ namespace nodepp { namespace regex {
 
     inline bool test( const string_t& _str, const string_t& _reg, bool _flg=false ){
         regex_t reg( _reg, _flg ); return reg.test( _str );
+    }
+
+    /*─······································································─*/
+
+    inline array_t<string_t> split_view( const string_t& _str, char ch ){ 
+        return string::split_view( _str, ch ); }
+
+    inline array_t<string_t> split_view( const string_t& _str, int  ch ){ 
+        return string::split_view( _str, ch ); }
+
+    inline array_t<string_t> split_view( const string_t& _str, const string_t& _reg, bool _flg=false ){
+          if ( _reg.size ()== 1 ){ return string::split_view( _str, _reg[0] ); }
+        elif ( _reg.empty() )    { return string::split_view( _str, 1 ); }
+        regex_t reg( _reg, _flg ); return reg.split_view( _str );
     }
 
     /*─······································································─*/

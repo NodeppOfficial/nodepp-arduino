@@ -17,19 +17,9 @@
 namespace nodepp { namespace /*anonimous*/ { class event_loop_t : public generator_t {
 private:
 
-    loop_t _loop_, _foop_; bool _EXIT_= false; probe_t _probe_;
+    loop_t _loop_; bool _EXIT_= false; probe_t _probe_;
 
 public:
-
-    ulong size(){ return _loop_.size() + _foop_.size(); }
-
-    void clear(){ _loop_.clear(); _foop_.clear(); }
-
-    bool empty(){ return size() <= 0; }
-
-    /*─······································································─*/
-
-    bool should_close(){ return _EXIT_ || empty(); }
 
     /*─······································································─*/
 
@@ -42,8 +32,18 @@ public:
 
     /*─······································································─*/
 
+    bool should_close(){ return _EXIT_ || empty(); }
+
+    ulong size(){ return _loop_.size(); }
+
+    bool empty(){ return size() <= 0; }
+
+    void clear(){ _loop_.clear(); }
+
+    /*─······································································─*/
+
     template< class... T >
-    void* foop( const T&... args ){ return _foop_.add( args... ); }
+    void* foop( const T&... args ){ return _loop_.add( args... ); }
 
     template< class... T >
     void* loop( const T&... args ){ return _loop_.add( args... ); }
@@ -53,8 +53,7 @@ public:
 
     /*─······································································─*/
 
-    template< class T, class... V > int await( T cb, const V&... args ){ 
-        int c=0;
+    template< class T, class... V > int await( T cb, const V&... args ){ int c=0;
 
         if ( !_EXIT_ && (c=cb(args...))>=0 ){
         if ( c==1 ){ auto t = coroutine::getno().delay;
@@ -67,9 +66,8 @@ public:
     ulong task= size()+ tmp.get()-1; coBegin
         
         while( !should_close() ){ 
-        while( _loop_.next(/**/)>=0 ){ coNext; } process::set_timeout( _loop_.get_delay() ); 
-        while( _foop_.next(/**/)>=0 ){ coNext; } process::set_timeout( _foop_.get_delay() );
-        /*------------------------------------*/ process::delay( TIMEOUT ); }
+        while( _loop_.next()>=0 ){ coNext; } process::set_timeout( _loop_.get_delay() ); 
+        /*--------------------------------*/ process::delay( TIMEOUT ); coNext; }
     
     coFinish }
 
