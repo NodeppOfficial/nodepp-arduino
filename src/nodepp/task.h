@@ -9,47 +9,27 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_QUERY
-#define NODEPP_QUERY
+#ifndef NODEPP_TASK
+#define NODEPP_TASK
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "expected.h"
-#include "regex.h"
-#include "map.h"
+namespace nodepp { struct task_t/**/ { int flag=0x00; void *addr, *sign; }; }
+namespace nodepp { struct TASK_STATE { enum TYPE {
+    UNKNOWN = 0b00000000,
+    OPEN    = 0b00000001,
+    USED    = 0b00000010,
+    CLOSED  = 0b00000100,
+};};}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { using query_t = map_t< string_t, string_t >;
-namespace query  {
-
-    inline query_t parse( string_t data ){
-    static regex_t reg( MEMSTR("[?&]([^= ]+)=([^?&]+)") );
-
-        if( data.empty() || data[0]!='?' )
-          { return nullptr; } query_t out;
-
-        reg.search_all( data ); auto mem = reg.get_memory();
-        reg.clear_memory();
-        
-        for( ulong x=0; x<mem.size(); x+=2 ){
-             auto  y=mem.slice_view( x,x+2 );
-        if ( y.size()!=2 ){ break; }
-             out[ y[0] ] = y[1];
-        }
-        
-        return out;
-    }
-    
-    /*─······································································─*/
-    
-    inline string_t format( const query_t& data ){ 
-        if ( data.empty() ){ return nullptr; } queue_t<string_t> out; 
-        for( auto x:data.data() ) { out.push( x.first + "=" + x.second ); }
-        return string::format("?%s",array_t<string_t>(out.data()).join("&").c_str());
-    }
-
-}}
+namespace nodepp { struct POLL_STATE { enum FLAG {
+    UNKNOWN = 0b00000000,
+    READ    = 0b00000010,
+    WRITE   = 0b00000001,
+    EDGE    = 0b10000000
+};}; }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

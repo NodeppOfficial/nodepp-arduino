@@ -9,66 +9,54 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_COROUTINE
-#define NODEPP_COROUTINE
+#ifndef NODEPP_EVENT_LOOP
+#define NODEPP_EVENT_LOOP
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { class coroutine_t { 
-private:
+namespace nodepp { namespace process { 
 
-    using T = function_t<int,int&,ulong&>;
-
-protected:
-
-    struct NODE {
-        T   callback; 
-        ulong time=0;
-        int state =0;
-        bool alive=1;
-    };  ptr_t<NODE> obj;
-
-public:
-
-    coroutine_t( T callback ) noexcept : obj( new NODE() ) { obj->callback = callback; }
-
-    coroutine_t() noexcept : obj( new NODE() ) { obj->alive = 0; }
+    kernel_t& NODEPP_EV_LOOP(){ static kernel_t evloop; return evloop; }
     
     /*─······································································─*/
 
-    void off() const noexcept { obj->alive = 0; obj->callback.free(); }
+    template< class... T >
+    void await( const T&... args ){ while(NODEPP_EV_LOOP().await( args... )==1){/*unused*/} }
 
-    void set_state( int value ) const noexcept { obj->state = value; }
+    template< class... T >
+    ptr_t<task_t> foop( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
 
-    int get_state() const noexcept { return obj->state; }
+    template< class... T >
+    ptr_t<task_t> loop( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
 
-    void free() const noexcept { off(); }
+    template< class... T >
+    ptr_t<task_t> poll( const T&... args ){ return NODEPP_EV_LOOP().poll_add( args... ); }
 
-    /*─······································································─*/
-
-    bool is_closed() const noexcept { return !is_available(); }
-
-    bool is_available() const noexcept { return obj->alive; }
+    template< class... T >
+    ptr_t<task_t> add ( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
     
     /*─······································································─*/
 
-    coEmit() const { return next(); } int next() const {
-        if   ( !obj->alive ){ return -1; }
-        return  obj->callback( obj->state, obj->time );
+    inline int   emit() /*-----------------*/ { return NODEPP_EV_LOOP().emit (); }
+    inline void clear( ptr_t<task_t> address ){ NODEPP_EV_LOOP().off( address ); }
+    inline void   off( ptr_t<task_t> address ){ NODEPP_EV_LOOP().off( address ); }
+
+    /*─······································································─*/
+
+    inline bool should_close(){ return NODEPP_EV_LOOP().empty(); }
+    inline bool        empty(){ return NODEPP_EV_LOOP().empty(); }
+    inline ulong        size(){ return NODEPP_EV_LOOP().size (); }
+    inline void        clear(){ /*--*/ NODEPP_EV_LOOP().clear(); }
+
+    /*─······································································─*/
+
+    inline int next(){ return NODEPP_EV_LOOP().next(); }
+
+    inline void exit( int err=0 ){ 
+        if( should_close() ){ goto DONE; }
+        clear(); DONE:; ::exit(err); 
     }
 
-}; }
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
-namespace nodepp   { 
-struct generator_t { ulong _time_=0; int _state_=0; };}
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
-namespace nodepp { namespace coroutine {
-    inline coroutine_t add( function_t<int,int&,ulong&> callback ) {
-    return coroutine_t( callback ); }
 }}
 
 /*────────────────────────────────────────────────────────────────────────────*/

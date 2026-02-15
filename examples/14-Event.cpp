@@ -14,7 +14,7 @@ void onMain(){
     ev.on([](){ console::done(" World 1 "); });
 
     // create an event that can be emitted once
-    ev.on([](){ console::done(" hello "); });
+    ev.once([](){ console::done(" hello "); });
 
     // Emit Events
     ev.emit(); 
@@ -23,9 +23,9 @@ void onMain(){
     // Clear Even Queue
     ev.clear();
 
-    // turn of an specific event
+    // turn off an specific event
     auto item = ev.on([](){  
-         console::log("me cago en la puta");    
+         console::log("Hello world!");    
     });
     console::log( "->", ev.size() );
 

@@ -9,36 +9,25 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_NODEPP
-#define NODEPP_NODEPP
+#ifndef NODEPP_PROBE
+#define NODEPP_PROBE
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "import.h"
-#include "evloop.h"
+namespace nodepp { class probe_t {
+private:
 
-/*────────────────────────────────────────────────────────────────────────────*/
+    ptr_t<uchar> counter;
 
-namespace nodepp { namespace process {
+public:
 
-    template< class... T >
-    void error( const T&... msg ){ ARDUINO_ERROR( msg... ); }
+    probe_t() noexcept : counter( 0UL, 0x00 ){}
 
-    inline void start(){ process::yield(); }
+    void clear() /*-*/ noexcept { counter.resize(0UL); }
 
-    inline void reset(){ ARDUINO_RESET(); }
+    ulong  get() const noexcept { return counter.count()-1; }
 
-    /*─······································································─*/
-
-    inline void stop(){
-        while( !process::should_close() ){
-            process::next( );
-        }   process::exit(0);
-    }
-
-    inline void wait(){ process::stop(); }
-
-}}
+}; }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

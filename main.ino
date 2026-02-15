@@ -1,8 +1,9 @@
-#include <nodepp.h>
+#include <nodepp/nodepp.h>
+#include <nodepp/encoder.h>
 
 using namespace nodepp;
 
 void onMain() {
-    Serial.begin(9600);
+    console::enable( 9600 );
     console::log("Hello World!");
 }

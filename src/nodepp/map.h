@@ -39,15 +39,17 @@ protected:
 public:
 
     template< ulong N >
-    map_t( const T (&args) [N] ) noexcept : obj(new NODE()) {
+    map_t( const T (&args) [N] ) noexcept : obj( new NODE() ) {
       for( auto &x: args ){ append(x); }
     }
 
-    map_t() noexcept : obj(new NODE()) {}
+    map_t( null_t ) noexcept : obj( new NODE() ){}
 
-    virtual ~map_t() noexcept {} 
+    map_t() noexcept : obj( new NODE() ) {}
 
     /*─······································································─*/
+    
+    explicit operator bool(void) const noexcept { return !empty(); }
 
     V& operator[]( const U& id ) const noexcept {
         auto x = obj->queue.first();

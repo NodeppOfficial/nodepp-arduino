@@ -1,43 +1,35 @@
-# Nodepp-Arduino
+# Nodepp-Arduino: The Unified Asynchronous Real-Time C++ Runtime
+> **The DOOM of Async Frameworks: Write Once, Compile Everywhere, Process Everything.**
 
-Nodepp is a groundbreaking open-source project that simplifies C++ application development by bridging the gap between the language's raw power and the developer-friendly abstractions of Node.js. By providing a high-level API, Nodepp empowers developers to write C++ code in a familiar, Node.js-inspired style.
+[![Platform](https://img.shields.io/badge/platform-Arduino%20|%20ESP32%20|%20ESP8266%20|%20STM32-blue)](https://github.com/NodeppOfficial/nodepp-arduino)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-One of the standout features of Nodepp is its 100% asynchronous architecture, powered by an internal Event Loop. This design efficiently manages Nodepp’s tasks, enabling you to develop scalable and concurrent applications with minimal code. Experience the power and flexibility of Nodepp as you streamline your development process and create robust applications effortlessly!
+Nodepp-Arduino is a lightweight, 100% asynchronous framework designed to bring the power of event-driven programming to microcontrollers. It eliminates the limitations of blocking code (like delay()), allowing your Arduino to handle massive concurrency—from sensor polling to complex encryption—without skipping a beat.
 
-🔗: [Nodepp The MOST Powerful Framework for Asynchronous Programming in C++](https://medium.com/p/c01b84eee67a)
+By combining an internal Event Loop with EE-optimized memory primitives, Nodepp enables a **Write Once, Compile Everywhere** workflow. Your logic stays consistent whether you're targeting an 8-bit Nano, a dual-core ESP32, or a high-end cloud server.
+
+## Featured Project: Asynchronous Enigma Machine
+
+To showcase [Nodepp for Arduino](https://github.com/NodeppOfficial/nodepp-arduino) efficiency on **bare metal** hardware, we implemented a fully functional Enigma Machine on an Arduino Nano.
+
+https://github.com/user-attachments/assets/9b870671-3854-444f-893d-40fdce31a629
+
+Try it now: [Enigma Machine Simulation](https://wokwi.com/projects/449104127751150593)
 
 ## Features
 
-- 📌: **Node.js-like API:** Write C++ code in a syntax and structure similar to Node.js, making it easier to learn and use.
-- 📌: **Embedded-compatible:** Compatible with several devices like Arduino UNO | Esp8266 | Esp32 | Stm32
-- 📌: **High-performance:** Leverage the speed and efficiency of C++ for demanding applications.
-- 📌: **Scalability:** Build applications that can handle large workloads and grow with your needs.
-- 📌: **Open-source:** Contribute to the project's development and customize it to your specific requirements.
+- **Zero-Blocking Architecture:** Never use `delay()` again. Every task runs asynchronously, keeping your MCU responsive.
+- **EE-Optimized Memory:** Custom `ptr_t` and `string_t` use **Small Stack Optimization (SSO)** and **zero-copy slicing** to prevent heap fragmentation on low-RAM chips.
 
-## Bateries Included
+- **Universal Logic:** Write your application logic once and deploy it across Linux, Windows, Mac, Android, WASM, and ESP32/Arduino.
 
-- 📌: Include a **build-in JSON** parser / stringify system.
-- 📌: Include a **build-in RegExp** engine for processing text strings.
-- 📌: Include a **build-in System** that make every object **Async Task** safety.
-- 📌: Include a **Smart Pointer** base **Garbage Collector** to avoid **Memory Leaks**.
-- 📌: Include support for **Reactive Programming** based on **Events** and **Observers**.
-- 📌: Include an **Event Loop** that can handle multiple events and tasks on a single thread.
+- **Batteries Included:** Built-in engines for JSON parsing, RegExp, UTF manipulation, and Promises—all optimized for embedded constraints.
 
-## Examples
+## Code Examples
 
-### Hello world
-```cpp
-#include <nodepp.h>
+### Coroutines: Multi-threaded Feel on Single-core Chips
+Stop managing complex state machines. Use coDelay to pause a task without freezing the whole system.
 
-using namespace nodepp;
-
-void onMain() {
-    console::enable(9600);
-    console::log("Hello World!");
-}
-```
-
-### Coroutines
 ```cpp
 #include <nodepp.h>
 
@@ -45,18 +37,19 @@ using namespace nodepp;
 
 void onMain() {
 
-    ptr_t<uchar> IO ({ 2, 3, 4, 5 });
-    for( auto x: IO ){ pinMode( x, OUTPUT ); }
+    ptr_t<uchar> LEDs ({ 2, 3, 4, 5 }); // SSO Optimized
+    for( auto x: LEDs ){ pinMode( x, OUTPUT ); }
 
     process::add( coroutine::add( COROUTINE(){
-        static uchar pin = 0;
+        static uchar i = 0;
     coBegin
 
         while( true ){
-            digitalWrite( pin, LOW );
-            pin = ( pin + 1 ) % IO.size();
-            digitalWrite( pin, HIGH );
-        coDelay( 300 ); }
+            digitalWrite( LEDs[i], LOW );
+            i = ( i + 1 ) % LEDs.size();
+            digitalWrite( LEDs[i], HIGH );
+        coDelay( 300 ); // Non-blocking delay
+        }
 
     coFinish
     }));
@@ -64,7 +57,9 @@ void onMain() {
 }
 ```
 
-### Events
+### Event-Driven Logic
+Trigger actions based on system signals or custom events seamlessly.
+
 ```cpp
 #include <nodepp.h>
 #include <nodepp/event.h>
@@ -74,39 +69,21 @@ using namespace nodepp;
 event_t<> ev;
 
 void onMain(){
-
+    
     pinMode( 13, OUTPUT );
 
     ev.on([](){
-        static bool b=0; b=!b;
-        digitalWrite( 13, b );
+        static bool state=0; state=!state;
+        digitalWrite( 13, state );
     });
 
-    ev.emit();
-
+    ev.emit(); // Manually trigger or bind to interrupts
 }
 ```
 
-### Timer
-```cpp
-#include <nodepp.h>
-#include <nodepp/timer.h>
+### Asynchronous Promises
+Handle long-running tasks or sensor readings using a modern Promise style API.
 
-using namespace nodepp;
-
-void onMain(){
-
-    pinMode( 13, OUTPUT );    
-
-    timer::interval([=](){
-        static bool b=0; b=!b;
-        digitalWrite( 13, b );
-    }, 1000 );
-
-}
-```
-
-### Promises
 ```cpp
 #include <nodepp.h>
 #include <nodepp/promise.h>
@@ -126,9 +103,7 @@ void onMain(){ Serial.begin( 9600 );
 }
 ```
 
-### More Examples [here](https://nodeppofficial.github.io/nodepp-doc/guide.html)
-
-## Learn By Projects
+## Explore Projects (Interactive Simulations)
 
 ### 3 channel Asynchronous Led Chaser
 [![IMAGE](https://thumbs.wokwi.com/projects/397439909199432705/thumbnail.jpg)](https://wokwi.com/projects/397439909199432705)
@@ -160,23 +135,22 @@ void onMain(){ Serial.begin( 9600 );
 ### Enigma Machine
 [![IMAGE](https://thumbs.wokwi.com/projects/449104127751150593/thumbnail.jpg)](https://wokwi.com/projects/449104127751150593)
 
-## Nodepp Supports Other Platforms Too
-- 🔗: [NodePP for Window | Linux | Mac | Bsd ](https://github.com/NodeppOfficial/nodepp)
-- 🔗: [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
-- 🔗: [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
+## One Codebase, Every Screen
+Nodepp is the only framework that lets you share logic between the deepest embedded layers and the highest web layers.
 
-## Contribution
+- **Hardware:** [NodePP for Arduino](https://github.com/NodeppOfficial/nodepp-arduino)
+- **Desktop:** [Nodepp for Desktop](https://github.com/NodeppOfficial/nodepp)
+- **Browser:** [Nodepp for WASM](https://github.com/NodeppOfficial/nodepp-wasm)
 
-If you want to contribute to **Nodepp**, you are welcome to do so! You can contribute in several ways:
+## Contributing
 
-- ☕ Buying me a Coffee
-- 📢 Reporting bugs and issues
-- 📝 Improving the documentation
-- 📌 Adding new features or improving existing ones
-- 🧪 Writing tests and ensuring compatibility with different platforms
-- 🔍 Before submitting a pull request, make sure to read the contribution guidelines.
+Nodepp is an open-source project that values Mechanical Sympathy and Technical Excellence.
+
+- **Sponsorship:** Support the project via [Ko-fi](https://ko-fi.com/edbc_repo).
+- **Bug Reports:** Open an issue via GitHub.
+- **License:** MIT.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/edbc_repo)
 
 ## License
-**Nodepp-arduino** is distributed under the MIT License. See the LICENSE file for more details.
+**Nodepp** is distributed under the MIT License. See the LICENSE file for more details.

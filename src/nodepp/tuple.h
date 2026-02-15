@@ -22,7 +22,7 @@ template <typename... Types> class tuple_t {};
 
 template <typename Head, typename... Tail>
 class tuple_t<Head, Tail...> : public tuple_t<Tail...> {
-public: tuple_t() noexcept {} virtual ~tuple_t() noexcept {}
+public: tuple_t() noexcept {} ~tuple_t() noexcept {}
     tuple_t( const Head& head, const Tail&... tail ) noexcept : tuple_t<Tail...>(tail...), head_(new Head(head)) {}
     tuple_t<Tail...> tail() const noexcept { return *this; }
     Head& head() const noexcept { return *head_; }
@@ -60,7 +60,7 @@ namespace tuple {
 
     template <ulong Index, typename... Types>
     typename tuple_element<Index, Types...>::type& get(const tuple_t<Types...>& tuple) {
-        static_assert( Index < sizeof...(Types), MEMSTR( "Index out of bounds in tuple get" ) );
+        static_assert( Index < sizeof...(Types), "Index out of bounds in tuple get" );
         return get_helper<Index, Types...>::get(tuple);
     }
 

@@ -14,8 +14,8 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define MEMORY(  ... ) /*-----*/ memory::get<TYPE>( __VA_ARGS__ )
-#define MEMSTR( DATA ) string_t( memory::get<char>( F( DATA ) ) )
+#define MEMORY(  ... ) /*--------*/ memory::get<TYPE>( __VA_ARGS__ )
+#define MEMSTR( DATA ) ptr_t<char>( memory::get<char>( F( DATA ) ) )
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
@@ -31,7 +31,7 @@ namespace nodepp { namespace memory {
             list.push( pgm_read_byte(raw++) );
         } while( x --> 0 );
 
-        memcpy( &out, &list.data, sizeof(V)*size );
+        memcpy( &out, &list.data(), sizeof(V)*size );
         return out;
     }
 

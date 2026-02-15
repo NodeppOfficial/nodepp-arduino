@@ -20,8 +20,8 @@ protected:
     struct NODE {
         queue_t<string_t> memory;
         string_t regex, _data;
+        bool icase, j=false;
         ptr_t<int> _rep;
-        bool i, j=false;
     };  ptr_t<NODE> obj;
 
     /*─······································································─*/
@@ -40,7 +40,7 @@ protected:
     return out; }
 
     int get_next_key( ulong _pos ){
-        uchar k=0; while( _pos < obj->regex.size() ){
+        uchar k=0; while( _pos < obj->regex.size() && k < 128 ){
 
             switch( obj->regex[_pos] ){  case '\\': ++_pos; break;
                 case '[': k += 1; break; case ']' : k -= 1; break;
@@ -55,8 +55,8 @@ protected:
     ptr_t<int> get_rep( int pos, int npos ){
         ptr_t<int> rep ({ 0, 0 }); bool b=0; string_t num[2];
 
-        obj->regex.slice( pos+1, npos ).map([&]( char& data ){
-              if(!string::is_digit(data) ){ b =! b; }
+        obj->regex.slice_view( pos+1, npos ).map([&]( char& data ){
+            if  (!string::is_digit(data) ){ b =! b; }
             elif( string::is_digit(data) ){ num[b].push(data); }
         });
 
@@ -83,15 +83,13 @@ protected:
 
         goto CHCK; MORE: ++pos[1]; CHCK:
 
-            auto _str_ = obj->i ? string::to_lower(str[pos[1]]) : str[pos[1]];
-
             if( obj->_data[0]!=0x01     &&
                 obj->_data[0]!=0x03     &&
                 (ulong) pos[1]>=str.size()
             ) { goto DONE; }
 
             if( (uchar) obj->_data[0] == '(' ){
-                regex_t reg ( obj->_data.slice(1), obj->i );
+                regex_t reg ( obj->_data.slice(1), obj->icase );
                 auto idx = reg._search( str,pos[1] );
                   if ( idx == nullptr ){ goto DONE; }
                 else { pos[1] = idx[1]-1; off[1] = idx[1];
@@ -100,11 +98,11 @@ protected:
             } elif( (uchar) obj->_data[0] == '[' ){
 
                 auto    x = obj->_data[1] == '^' ? 2 : 1;
-                auto list = compile_range(obj->_data.slice(x));
+                auto list = compile_range(obj->_data.slice_view(x));
 
-                  if ( x == 2 && list.none([&]( char itm ){ return _str_ == itm; }))
+                  if ( x == 2 && list.none([&]( char itm ){ return comparator( str[pos[1]], itm ); }))
                      { ++off[1]; goto LESS; }
-                elif ( x == 1 && list.some([&]( char itm ){ return _str_ == itm; }))
+                elif ( x == 1 && list.some([&]( char itm ){ return comparator( str[pos[1]], itm ); }))
                      { ++off[1]; goto LESS; } goto DONE;
 
             } elif( (uchar) obj->_data[0] == 0x00 ){ goto CLSE;
@@ -115,7 +113,7 @@ protected:
                 if( compile_cmd( obj->_data[0], obj->j, str, pos[1] ) )
                   { ++off[1]; goto LESS; } goto DONE;
             } else {
-                if( obj->_data[0] == _str_ )
+                if( comparator( str[pos[1]], obj->_data[0] ) )
                   { ++off[1]; goto LESS; } goto DONE;
             }
 
@@ -169,7 +167,7 @@ protected:
     /*─······································································─*/
 
     bool compile_cmd( char& flg, bool b, string_t& data, int pos ){
-          if( flg == 0x03 &&  b &&  ( pos==0||(ulong)pos>=data.size()-1) ){ return true; }
+        if  ( flg == 0x03 &&  b &&  ( pos==0||(ulong)pos>=data.size()-1) ){ return true; }
         elif( flg == 0x03 && !b && !( pos==0||(ulong)pos>=data.size()-1) ){ return true; }
         elif( flg == 0x04 &&  b &&  string::is_alnum( data[pos] ) )       { return true; }
         elif( flg == 0x04 && !b && !string::is_alnum( data[pos] ) )       { return true; }
@@ -193,8 +191,7 @@ protected:
 
     /*─······································································─*/
 
-    string_t compile_range( string_t nreg ){
-        queue_t<char> reg;
+    string_t compile_range( string_t nreg ){ queue_t<char> reg;
 
         for( ulong x=0; x<nreg.size(); ++x ){
             if ( nreg[x]=='\\' ){ ++x;
@@ -230,13 +227,12 @@ protected:
 
             if( obj->regex[pos[0]] == ']' || obj->regex[pos[0]] == '{' ||
                 obj->regex[pos[0]] == '}' || obj->regex[pos[0]] == ')'
-            ) { ARDUINO_ERROR(string::format( MEMSTR( "regex: %d %c" ),pos[0], obj->regex[pos[0]] )); }
+            ) { off.fill(0x00); break; }
 
             elif( obj->regex[pos[0]] == '(' || obj->regex[pos[0]] == '[' ){
                  auto npos = get_next_key( pos[0] );
-            if ( npos < 0 )
-               { ARDUINO_ERROR(string::format( MEMSTR( "regex: %d %c" ), pos[0], obj->regex[pos[0]] )); }
-                 obj->_data = obj->regex.slice( pos[0], npos ); pos[0] = npos;
+            if ( npos<0 ){ off.fill(0x00); break; }
+                 obj->_data = obj->regex.slice_view( pos[0], npos ); pos[0] = npos;
             }
 
             elif( obj->regex[pos[0]] == '|' ){ break; }
@@ -246,7 +242,7 @@ protected:
 
             elif( obj->regex[pos[0]] == '\\' ){ ++pos[0];
                                                 obj->_data.clear(); obj->_data.push( (char) 0x0f );
-              if( obj->regex[pos[0]] == 'b'  ){ obj->_data.clear(); obj->_data.push( (char) 0x03 ); obj->j = true;  }
+            if  ( obj->regex[pos[0]] == 'b'  ){ obj->_data.clear(); obj->_data.push( (char) 0x03 ); obj->j = true;  }
             elif( obj->regex[pos[0]] == 'B'  ){ obj->_data.clear(); obj->_data.push( (char) 0x03 ); obj->j = false; }
             elif( obj->regex[pos[0]] == 'w'  ){ obj->_data.clear(); obj->_data.push( (char) 0x04 ); obj->j = true;  }
             elif( obj->regex[pos[0]] == 'W'  ){ obj->_data.clear(); obj->_data.push( (char) 0x04 ); obj->j = false; }
@@ -266,7 +262,11 @@ protected:
 
         obj->_data=nullptr; obj->_rep=nullptr;
 
-    coFinish
+    coFinish }
+
+    inline bool comparator( char a, char b ) const noexcept {
+        return obj->icase ? ( string::to_lower(a)==string::to_lower(b) ) 
+                          : ( a == b );
     }
 
     /*─······································································─*/
@@ -289,12 +289,12 @@ protected:
 
 public:
 
-    virtual ~regex_t() noexcept { clear_memory(); }
+   ~regex_t () noexcept { clear_memory(); }
 
-    regex_t (): obj( new NODE() ){}
+    regex_t () noexcept : obj( new NODE() ){}
 
     regex_t ( const string_t& reg, bool icase=false ): obj( new NODE() )
-            { obj->i = icase; obj->regex = reg; }
+            { obj->icase = icase; obj->regex = reg; }
 
     /*─······································································─*/
 
@@ -323,6 +323,14 @@ public:
     }
 
     /*─······································································─*/
+
+    array_t<string_t> split_view( const string_t& _str ){ ulong n = 0;
+        auto idx = search_all( _str ); queue_t<string_t> out;
+        if ( idx.empty()  ){ out.push(_str); return out.data(); }
+        for( auto x : idx ){
+             out.push( _str.slice_view( n, x[0] ) ); n = x[1];
+        }    out.push( _str.slice_view( n ) ); return out.data();
+    }
 
     array_t<string_t> split( const string_t& _str ){ ulong n = 0;
         auto idx = search_all( _str ); queue_t<string_t> out;
@@ -455,6 +463,20 @@ namespace nodepp { namespace regex {
 
     /*─······································································─*/
 
+    inline array_t<string_t> split_view( const string_t& _str, char ch ){ 
+        return string::split_view( _str, ch ); }
+
+    inline array_t<string_t> split_view( const string_t& _str, int  ch ){ 
+        return string::split_view( _str, ch ); }
+
+    inline array_t<string_t> split_view( const string_t& _str, const string_t& _reg, bool _flg=false ){
+          if ( _reg.size ()== 1 ){ return string::split_view( _str, _reg[0] ); }
+        elif ( _reg.empty() )    { return string::split_view( _str, 1 ); }
+        regex_t reg( _reg, _flg ); return reg.split_view( _str );
+    }
+
+    /*─······································································─*/
+
     inline array_t<string_t> split( const string_t& _str, char ch ){ return string::split( _str, ch ); }
 
     inline array_t<string_t> split( const string_t& _str, int ch ){ return string::split( _str, ch ); }
@@ -478,16 +500,17 @@ namespace nodepp { namespace regex {
     string_t format( const string_t& val, const T&... args ){
         auto count = string::count( []( string_t ){ return true; }, args... );
 
-        static regex_t reg0( MEMSTR( "\\$\\{\\d+\\}" ) );
-        static regex_t reg1( MEMSTR( "\\d+" ) );
-        
         queue_t<string_t> out; ulong idx=0;
+        static ptr_t<regex_t> reg ({
+            regex_t( MEMSTR( "\\$\\{\\d+\\}" ) ),
+            regex_t( MEMSTR( "\\d+" ) )
+        });
 
-        for( auto &x: reg0.search_all( val ) ){
-        auto y = string::to_uint( reg1.match( val.slice( x[0], x[1] ) ) );
+        for( auto &x: reg[0].search_all( val ) ){
+        auto y = string::to_uint( reg[1].match( val.slice_view( x[0], x[1] ) ) );
         if ( y >= count ){ break; }
-             out.push( val.slice( idx, x[0]    ) );
-             out.push( string::get( y, args... ) ); idx = x[1];
+             out.push( val.slice( idx,x[0] ) );
+             out.push( string::get( y , args... ) ); idx = x[1];
         }    out.push( val.slice( idx ) );
 
         return array_t<string_t>( out.data() ).join("");
@@ -498,3 +521,5 @@ namespace nodepp { namespace regex {
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
