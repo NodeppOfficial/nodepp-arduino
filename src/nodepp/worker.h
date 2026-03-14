@@ -9,16 +9,34 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_WORKER
+#define NODEPP_WORKER
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
+#if (_KERNEL_==NODEPP_KERNEL_ARDUINO) && defined(NODEPP_THREAD_SUPPORTED)
+    #include "mutex.h"
+    #include "arduino/worker.h"
 #else
-    #error "This OS Does not support conio.h"
+    #error "This OS Does not support worker.h"
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { namespace worker { 
+
+    template< class V, class... T >
+    void await( V cb, const T&... args ){ 
+        worker_t wrk( cb, args... ); wrk.await();
+    }
+    
+    template< class V, class... T >
+    worker_t add( V cb, const T&... args ){ 
+        worker_t wrk( cb, args... ); 
+        wrk.add(); return wrk; 
+    }
+
+}}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

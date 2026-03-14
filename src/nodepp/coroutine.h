@@ -14,12 +14,6 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { struct generator_t { protected: 
-    ulong _time_ = 0; int _state_= 0; 
-}; }
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
 namespace nodepp { class coroutine_t { 
 private:
 
@@ -36,11 +30,9 @@ protected:
 
 public:
 
-    coroutine_t( T callback ) : obj( new NODE() ) { obj->callback = callback; }
+    coroutine_t( T callback ) noexcept : obj( new NODE() ) { obj->callback = callback; }
 
-    coroutine_t() : obj( new NODE() ) { obj->alive = 0; }
-
-    virtual ~coroutine_t() noexcept {}
+    coroutine_t() noexcept : obj( new NODE() ) { obj->alive = 0; }
     
     /*─······································································─*/
 
@@ -60,23 +52,27 @@ public:
     
     /*─······································································─*/
 
-    coEmit() const { return next(); }
-
-    int next() const {
-        if ( !obj->alive ){ return -1; }
-        return obj->callback( obj->state, obj->time );
+    coEmit() const { return next(); } int next() const {
+        if   ( !obj->alive ){ return -1; }
+        return  obj->callback( obj->state, obj->time );
     }
 
 }; }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
+namespace nodepp   { 
+struct generator_t { ulong _time_=0; int _state_=0; };}
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
 namespace nodepp { namespace coroutine {
     inline coroutine_t add( function_t<int,int&,ulong&> callback ) {
-        return coroutine_t( callback );
-    }
+    return coroutine_t( callback ); }
 }}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
