@@ -18,13 +18,11 @@ namespace nodepp { template< class V, class... T > class function_t {
 public:
     
     template< class F >
-    function_t( F f ) : func_ptr( new func_impl<F>(f) ) {}
+    function_t( F f ) noexcept : func_ptr( new func_impl<F>(f) ) {}
 
     function_t( null_t ) noexcept : func_ptr(nullptr) {}
    
     function_t() noexcept : func_ptr(nullptr) {}
-    
-    virtual ~function_t() noexcept {}
     
     /*─······································································─*/
 
@@ -33,6 +31,7 @@ public:
     bool     empty() const noexcept { return func_ptr.null (); }
     bool      null() const noexcept { return func_ptr.null (); }
     void      free() const noexcept { /*--*/ func_ptr.free (); }
+    void     clear() const noexcept { /*--*/ func_ptr.free (); }
     
     /*─······································································─*/
 

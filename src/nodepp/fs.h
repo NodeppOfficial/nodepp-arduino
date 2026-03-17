@@ -9,15 +9,18 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_FS
+#define NODEPP_FS
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
+    #include "path.h"
+    #include "stream.h"
+    #include "promise.h"
+    #include "arduino/fs.h"
 #else
-    #error "This OS Does not support conio.h"
+    #error "This OS Does not support fs.h"
 #endif
 
 /*────────────────────────────────────────────────────────────────────────────*/

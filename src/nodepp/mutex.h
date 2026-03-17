@@ -9,16 +9,28 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_MUTEX
+#define NODEPP_MUTEX
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
+#if (_KERNEL_==NODEPP_KERNEL_ARDUINO) && defined( NODEPP_THREAD_SUPPORTED )
+    #include "atomic.h"
+    #include "arduino/mutex.h"
 #else
-    #error "This OS Does not support conio.h"
+    #error "This OS Does not support mutex.h"
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { namespace mutex {
+
+    template< class T, class... V >
+    function_t<int,V...> add( mutex_t mut, T cb, const V&... args ){
+        return [=](){ return mut.emit( cb, args... ); };
+    }
+
+}}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

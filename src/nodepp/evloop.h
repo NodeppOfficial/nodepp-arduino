@@ -9,48 +9,55 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_EXPECTED
-#define NODEPP_EXPECTED
+#ifndef NODEPP_EVENT_LOOP
+#define NODEPP_EVENT_LOOP
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "any.h"
+namespace nodepp { namespace process {
 
-/*────────────────────────────────────────────────────────────────────────────*/
+    kernel_t& NODEPP_EV_LOOP(){ thread_local static kernel_t evloop; return evloop; }
+    
+    /*─······································································─*/
 
-namespace nodepp {
-template <typename T, typename E> struct expected_t { 
-protected:
+    template< class... T >
+    void await( const T&... args ){ while(NODEPP_EV_LOOP().await( args... )==1){/*unused*/} }
 
-    struct NODE { any_t data; bool has; }; ptr_t<NODE> obj;
+    template< class... T >
+    ptr_t<task_t> foop( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
 
-public:
+    template< class... T >
+    ptr_t<task_t> loop( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
 
-    expected_t( const T& val ) noexcept : obj( new NODE() ) { obj->has = true ; obj->data = val; }
-    expected_t( const E& err ) noexcept : obj( new NODE() ) { obj->has = false; obj->data = err; }
+    template< class... T >
+    ptr_t<task_t> poll( const T&... args ){ return NODEPP_EV_LOOP().poll_add( args... ); }
+
+    template< class... T >
+    ptr_t<task_t> add ( const T&... args ){ return NODEPP_EV_LOOP().loop_add( args... ); }
+    
+    /*─······································································─*/
+
+    inline void clear( ptr_t<task_t> address ){ NODEPP_EV_LOOP().off( address ); }
+    inline void   off( ptr_t<task_t> address ){ NODEPP_EV_LOOP().off( address ); }
+    inline int   emit() /*-----------------*/ { return NODEPP_EV_LOOP().emit (); }
 
     /*─······································································─*/
 
-    explicit operator bool(void) const noexcept { return has_value(); }
-    bool has_value() /*-------*/ const noexcept { return obj->has; }
+    inline bool should_close(){ return NODEPP_EV_LOOP().empty() || *NODEPP_EV_LOOP().should_close(); }
+    inline bool        empty(){ return NODEPP_EV_LOOP().empty(); }
+    inline ulong        size(){ return NODEPP_EV_LOOP().size (); }
+    inline void        clear(){ /*--*/ NODEPP_EV_LOOP().clear(); }
 
     /*─······································································─*/
 
-    T value() const { 
-        if( !has_value() || !obj->data.has_value() )
-          { ARDUINO_ERROR("expected does not have a value"); }
-        return obj->data.template as<T>(); 
-    }
+    inline int next(){ return NODEPP_EV_LOOP().next(); }
 
-    /*─······································································─*/
+    inline void exit( int err=0 ){ 
+        if( should_close() ) /*--------*/ { goto DONE; }
+        *NODEPP_EV_LOOP().should_close() = true; clear(); 
+    DONE:; ::exit(err); }
 
-    E error() const { 
-        if( has_value() || !obj->data.has_value() )
-          { ARDUINO_ERROR("expected does not have a value"); }
-        return obj->data.template as<E>(); 
-    }
-
-};}
+}}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

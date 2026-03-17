@@ -9,16 +9,27 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_TASK
+#define NODEPP_TASK
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
-#else
-    #error "This OS Does not support conio.h"
-#endif
+namespace nodepp { struct task_t/**/ { int flag=0x00; void *addr, *sign; }; }
+namespace nodepp { struct TASK_STATE { enum TYPE {
+    UNKNOWN = 0b00000000,
+    OPEN    = 0b00000001,
+    USED    = 0b00000010,
+    CLOSED  = 0b00000100,
+};};}
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { struct POLL_STATE { enum FLAG {
+    UNKNOWN = 0b00000000,
+    READ    = 0b00000010,
+    WRITE   = 0b00000001,
+    EDGE    = 0b10000000
+};}; }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
