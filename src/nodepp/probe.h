@@ -9,16 +9,25 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_PROBE
+#define NODEPP_PROBE
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
-#else
-    #error "This OS Does not support conio.h"
-#endif
+namespace nodepp { class probe_t {
+private:
+
+    ptr_t<uchar> counter;
+
+public:
+
+    probe_t() noexcept : counter( 0UL, 0x00 ){}
+
+    void clear() /*-*/ noexcept { counter.resize(0UL); }
+
+    ulong  get() const noexcept { return counter.count()-1; }
+
+}; }
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

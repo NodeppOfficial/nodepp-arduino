@@ -9,68 +9,58 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_MEMORY
-#define NODEPP_MEMORY
+#ifndef NODEPP_CHANNEL
+#define NODEPP_CHANNEL
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#define MEMORY(  ... ) /*-----*/ memory::get<TYPE>( __VA_ARGS__ )
-#define MEMSTR( DATA ) string_t( memory::get<char>( F( DATA ) ) )
+#include "any.h"
+#include "mutex.h"
+#include "worker.h"
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace memory {
+namespace nodepp { template< class T > class channel_t {
+private:
 
-    template< class V >
-    ptr_t<V> get( const __FlashStringHelper* data, ulong size ){
-    ptr_t<V> out( size ); queue_t<char> list;
-        
-        ulong x = size * sizeof( V );
+    struct NODE { 
+        /*--------*/ queue_t<T> queue; 
+        ulong limit; mutex_t mut; 
+    };  atomic_ptr_t<NODE> obj;
 
-        PGM_P raw = type::cast<PGM_P>( data ); do {
-            list.push( pgm_read_byte(raw++) );
-        } while( x --> 0 );
+public:
 
-        memcpy( &out, &list.data, sizeof(V)*size );
-        return out;
-    }
-
-    template< class V >
-    ptr_t<V> get( const __FlashStringHelper* data ){
-
-        PGM_P raw = reinterpret_cast<PGM_P>( data ); 
-        queue_t<char> list; do {
-            list.push( pgm_read_byte(raw++) );
-        } while( list.last()->data != '\0' );
-
-        return list.data();
-    }
+    channel_t( ulong limit=0 ) noexcept : obj( new NODE() ) { obj->limit=limit; }
 
     /*─······································································─*/
 
-    template< class V, class T, ulong N >
-    V get( const T& data ){ V out={0}; 
-        PGM_P start_address = reinterpret_cast<PGM_P>(data) + N * sizeof(V);
-        memcpy_P( &out, start_address, sizeof(V) ); return out; 
-    }
+    bool empty() const noexcept { return obj->queue.empty(); }
+
+    ulong size() const noexcept { return obj->queue.size (); }
 
     /*─······································································─*/
 
-    template< class V, class T >
-    ptr_t<V> get( const T& data, ulong size ){ 
-    ptr_t<V> out( size ); memcpy_P( &out, data, sizeof(V)*size ); 
-        return out; 
-    }
+    void free () const noexcept { clear(); }
+    void clear() const noexcept { 
+    obj->mut.lock([&](){ obj->queue.clear(); }); }
 
-    template< class V, class T >
-    ptr_t<V> get( const T& data ){ 
-        char* out = new char[ strlen_P( data ) ];
-        ulong len = strlen_P( data ) * sizeof(V);
-        memcpy_P( out, data, len ); 
-        return out;
-    }
+    /*─······································································─*/
 
-} }
+    template< class... V >
+    int write( const V&... args ) const noexcept { 
+    int x=0; obj->mut.lock([&](){ iterator::map( [&]( T clb ){
+        if( obj->limit>0 && obj->queue.size()>=obj->limit )
+          { return; } obj->queue.push( clb );
+    }, args... ); }); return x; }
+
+    ptr_t<T> read() const noexcept { 
+    ptr_t<T> out( size() ); obj->mut.lock([&](){
+        if( obj->queue.empty() ){ return; } 
+        auto tmp = obj->queue.data();
+        type::move( tmp.begin(), tmp.end(), out.begin() );
+    obj->queue.clear(); }); return out; }
+
+};}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

@@ -12,32 +12,36 @@
 #ifndef NODEPP_OPTIONAL
 #define NODEPP_OPTIONAL
 
-#include "any.h"
+/*────────────────────────────────────────────────────────────────────────────*/
 
 namespace nodepp { 
 template< class T > class optional_t {
-protected:
-
-    bool has; any_t data;
+protected: ptr_t<T> val;
 
 public:
 
-    optional_t( const T& val ) noexcept { has = true; data = val; }
+    optional_t( const T& value ) noexcept { val=ptr_t<T>( 0UL, value ); }
 
-    optional_t() noexcept { has = false; }
+    optional_t()  /*----------*/ noexcept {}
 
-    virtual ~optional_t() noexcept {}
-
-    /*─······································································─*/
-
-    bool has_value() const noexcept { return has; }
+    optional_t( null_t ) /*---*/ noexcept {}
 
     /*─······································································─*/
 
-    T value() const { if ( !has_value() || !data.has_value() ) {
-        ARDUINO_ERROR( MEMSTR( "Optional does not have a value" ) );
-    }   return data.as<T>(); }
+    explicit operator bool(void) const noexcept { return !val.null(); }
+
+    bool has_value() /*-------*/ const noexcept { return !val.null(); }
+
+    /*─······································································─*/
+
+    T& value() const { 
+    if( val.null() ){ NODEPP_THROW_ERROR("expected does not have a value"); }
+    return *val; }
     
 };}
 
+/*────────────────────────────────────────────────────────────────────────────*/
+
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/

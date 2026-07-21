@@ -9,43 +9,25 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_COOKIE
-#define NODEPP_COOKIE
+#ifndef NODEPP_MUTEX
+#define NODEPP_MUTEX
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#include "regex.h"
-#include "map.h"
+#if (_KERNEL_==NODEPP_KERNEL_ARDUINO) && defined( NODEPP_THREAD_SUPPORTED )
+    #include "atomic.h"
+    #include "arduino/mutex.h"
+#else
+    #error "This OS Does not support mutex.h"
+#endif
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { using cookie_t = map_t< string_t, string_t >;
-namespace cookie {
+namespace nodepp { namespace mutex {
 
-    inline query_t parse( string_t data ){
-    /*--*/ regex_t reg( "([^= ;]+)=([^;]+)" );
-
-        if( data.empty() /*-----------*/ )
-          { return nullptr; } query_t out;
-        
-        reg.search_all( data ); auto mem = reg.get_memory();
-        reg.clear_memory();
-        
-        for( ulong x=0; x<mem.size(); x+=2 ){
-             auto  y=mem.slice_view( x,x+2 );
-        if ( y.size()!=2 ){ break; }
-             out[ y[0] ] = y[1];
-        }
-        
-        return out;
-    }
-    
-    /*─······································································─*/
-    
-    inline string_t format( const cookie_t& data ){
-        if ( data.empty() ){ return nullptr; } queue_t<string_t> out; 
-        for( auto x:data.data() ){ out.push( x.first + "=" + x.second ); }   
-        return string::format("%s",array_t<string_t>(out.data()).join("; ").c_str());
+    template< class T, class... V >
+    function_t<int,V...> add( mutex_t mut, T cb, const V&... args ){
+        return [=](){ return mut.emit( cb, args... ); };
     }
 
 }}

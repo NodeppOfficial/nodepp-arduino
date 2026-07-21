@@ -4,48 +4,42 @@
  * Licensed under the MIT (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
  * in the file LICENSE in the source distribution or at
- * https://github.com/NodeppOfficial/nodepp/blob/main/LICENSE
+ * https://github.com/NodeppOficial/nodepp/blob/main/LICENSE
  */
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_DEBUG
-#define NODEPP_DEBUG
+#ifndef NODEPP_ARDUINO_CONIO
+#define NODEPP_ARDUINO_CONIO
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { class debug_t {     
-protected: 
+namespace nodepp { namespace conio {
 
-    struct NODE { 
-        string_t msg;
-        void* ev = nullptr;
-    };  ptr_t<NODE> obj;
-
-public: debug_t() noexcept : obj(new NODE()) { }
+    inline int perr( const string_t& args ){ return Serial.write( args.get(), args.size() ); }
     
-    /*─······································································─*/
+    inline int pout( const string_t& args ){ return Serial.write( args.get(), args.size() ); }
 
-    virtual ~debug_t() noexcept { 
-        if ( obj.count() == 2 )
-           { console::log( obj->msg, MEMSTR( "closed" ) ); }    
+    template< class V, class... T >
+    int scan( const V& argc, const T&... args ){ while(!Serial.available() ){/**/}
+        return string::parse( Serial.readString().c_str(), (char*) argc, args... );
     }
-    
-    /*─······································································─*/
-    
-    debug_t( const string_t& msg ) noexcept : obj(new NODE()) {
-        obj->msg = msg; auto inp = type::bind( this );
-	               console::log( obj->msg, MEMSTR("open") );
-    }
-    
+
     /*─······································································─*/
 
     template< class... T >
-    void log( const T&... args ) const noexcept { console::log( "--", args... ); }
+    int log( const T&... args ){
+        auto  data = string::join( " ", args... );
+        pout( data ); return data.size();
+    }
 
-    void error() const noexcept { ARDUINO_ERROR( obj->msg ); }
-    
-};}
+    template< class... T >
+    int err( const T&... args ){
+        auto  data = string::join( " ", args... );
+        perr( data ); return data.size();
+    }
+
+}}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

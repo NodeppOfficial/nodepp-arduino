@@ -1,0 +1,267 @@
+/*
+ * Copyright 2023 The Nodepp Project Authors. All Rights Reserved.
+ *
+ * Licensed under the MIT (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://github.com/NodeppOficial/nodepp/blob/main/LICENSE
+ */
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+#ifndef NODEPP_EMBEDDED_FILE
+#define NODEPP_EMBEDDED_FILE
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { class file_t {
+private:
+
+    void kill() const noexcept { 
+        obj->state |= STATE::FS_STATE_KILL;
+    }
+
+    bool is_state( uchar value ) const noexcept {
+        if( obj->state & value ){ return true; }
+    return false; }
+
+    void set_state( uchar value ) const noexcept {
+    if( obj->state & STATE::FS_STATE_KILL ){ return; }
+        obj->state = value;
+    }
+
+    enum STATE {
+         FS_STATE_UNKNOWN = 0b00000000,
+         FS_STATE_OPEN    = 0b00000001,
+         FS_STATE_REUSE   = 0b01000000,
+         FS_STATE_CLOSE   = 0b00000010,
+         FS_STATE_READING = 0b00010000,
+         FS_STATE_WRITING = 0b00100000,
+         FS_STATE_KILL    = 0b00000100,
+         FS_STATE_STOP    = 0b00001000,
+         FS_STATE_DISABLE = 0b00001110
+    };
+
+protected:
+
+    struct NODE {
+
+        len_t range[2] = { 0, 0 };
+        FILE*  fd      = nullptr;
+        int    feof    = 1; uchar_64 tag= 0UL;
+        /*---------------*/ uchar_64 pd = 0UL;
+        uchar  state   = STATE::FS_STATE_OPEN;
+
+        ptr_t<char> buffer; string_t borrow;
+        generator::file::until _until;
+        generator::file::line  _line ;
+        generator::file::read  _read ;
+        generator::file::write _write;
+
+       ~NODE(){
+        if( fd==stdin  || /*------*/
+            fd==stdout || fd==stderr 
+        ) { return; } fclose( fd ); }
+    };  ptr_t<NODE> obj;
+    
+public:
+
+    event_t<>          onUnpipe;
+    event_t<>          onResume;
+    event_t<except_t>  onError;
+    event_t<>          onDrain;
+    event_t<>          onClose;
+    event_t<>          onOpen;
+    event_t<>          onPipe;
+    event_t<string_t>  onData;
+
+    /*─······································································─*/
+
+    file_t( const string_t& path, const string_t& mode, const ulong& _size=NODEPP_CHUNK_SIZE ) : obj( new NODE() ) {
+            obj->fd = fopen( path.c_str(), mode.empty() ? "r+" : mode.c_str() ); 
+        if( obj->fd == nullptr ){
+            NODEPP_THROW_ERROR( "such file or directory does not exist" );
+        }   set_buffer_size( _size ); 
+    }
+
+    file_t( FILE* fd, const ulong& _size=NODEPP_CHUNK_SIZE ) : obj( new NODE() ) {
+        if( fd == nullptr )
+          { NODEPP_THROW_ERROR( "such file or directory does not exist" ); }   
+            obj->fd = fd; set_buffer_size( _size ); 
+    }
+
+   ~file_t() noexcept { if( obj.count()>1 && !is_closed() ){ return; } free(); }
+
+    file_t() noexcept : obj( new NODE() ) {}
+
+    /*─······································································─*/
+
+    void  resume() const noexcept { if(!is_state(STATE::FS_STATE_STOP )){ return; } onResume .emit(); obj->state &=~ STATE::FS_STATE_STOP; }
+    void    stop() const noexcept { if( is_state(STATE::FS_STATE_STOP )){ return; } onDrain  .emit(); obj->state |=  STATE::FS_STATE_STOP; }
+    void   reset() const noexcept { if( is_state(STATE::FS_STATE_KILL )){ return; } resume(); pos(0); }
+    void   flush() const noexcept { obj->buffer.fill(0); }
+
+    /*─······································································─*/
+
+    bool    is_closed() const noexcept { return is_state(STATE::FS_STATE_DISABLE) || obj->fd==nullptr; }
+    bool  is_reusable() const noexcept { return is_state(STATE::FS_STATE_REUSE  ); }
+    bool      is_feof() const noexcept { return obj->feof <= 0 && obj->feof != -2; }
+    bool   is_waiting() const noexcept { return obj->feof == -2; }
+    bool is_available() const noexcept { return !is_closed(); }
+
+    /*─······································································─*/
+
+    void close() const noexcept {
+        if( is_state ( STATE::FS_STATE_DISABLE )){ return; } onDrain.emit(); 
+        if( is_state ( STATE::FS_STATE_REUSE   )){ return; }
+            set_state( STATE::FS_STATE_CLOSE   );
+    free(); }
+
+    /*─······································································─*/
+
+    void    set_range( len_t x, len_t y ) const noexcept { obj->range[0] = x; obj->range[1] = y; }
+    len_t* get_range() /*---------------*/ const noexcept { return obj->range; }
+
+    /*─······································································─*/
+
+    void set_reusable( bool mode ) const noexcept { 
+    switch( (int) mode ){
+        case 1 : obj->state |=  STATE::FS_STATE_REUSE; break;
+        default: obj->state &=~ STATE::FS_STATE_REUSE; break;
+    }}
+
+    /*─······································································─*/
+
+    FILE*      get_fd() const noexcept { return obj->fd ; }
+    uchar_64&     tag() const noexcept { return obj->tag; }
+    uchar_64&  get_pd() const noexcept { return obj->pd ; }
+
+    /*─······································································─*/
+
+    void   set_borrow( const string_t& brr ) const noexcept { obj->borrow = brr; }
+    ulong  get_borrow_size() const noexcept { return obj->borrow.size(); }
+    char*  get_borrow_data() const noexcept { return obj->borrow.data(); }
+    void        del_borrow() const noexcept { obj->borrow.clear(); }
+    string_t&   get_borrow() const noexcept { return obj->borrow; }
+
+    /*─······································································─*/
+
+    ulong   get_buffer_size() const noexcept { return obj->buffer.size(); }
+    char*   get_buffer_data() const noexcept { return obj->buffer.data(); }
+    ptr_t<char>& get_buffer() const noexcept { return obj->buffer; }
+
+    /*─······································································─*/
+
+    ulong set_buffer_size( ulong _size ) const noexcept { 
+        obj->buffer = ptr_t<char>( _size ); return _size;
+    }
+
+    /*─······································································─*/
+
+    void free() const noexcept {
+
+        if( is_state( STATE::FS_STATE_STOP  ) && !is_feof() && obj.count() >1 ){ return; }
+        if( is_state( STATE::FS_STATE_KILL  ) ){ return; } /*-----------------*/ kill();
+        if(!is_state( STATE::FS_STATE_CLOSE | STATE::FS_STATE_STOP ) ) { onDrain.emit(); }
+        
+        onClose.emit();
+
+        onUnpipe.clear(); onResume.clear();
+        onError .clear(); onData  .clear();
+        onOpen  .clear(); /*-------------*/
+        onPipe  .clear(); onClose .clear();
+
+    }
+
+    /*─······································································─*/
+
+    len_t pos() /*--------*/ const noexcept { return ftell( obj->fd ); }
+
+    len_t size() const noexcept { auto curr = pos();
+        if( fseek( obj->fd, 0 , SEEK_END ) != 0 ){ return 0; }
+        len_t size = ftell(obj->fd); pos( curr ); return size;
+    }
+
+    len_t pos( len_t _pos ) const noexcept {
+        fseek( obj->fd, _pos, SEEK_SET ); 
+        return pos();
+    }
+
+    /*─······································································─*/
+
+    char read_char() const noexcept { return read(1)[0]; }
+
+    string_t read_until( string_t ch ) const noexcept {
+        while( obj->_until( this, ch ) == 1 )
+             { process::next(); }
+        return obj->_until.data;
+    }
+
+    string_t read_until( char ch ) const noexcept {
+        while( obj->_until( this, ch ) == 1 )
+             { process::next(); }
+        return obj->_until.data;
+    }
+
+    string_t read_line() const noexcept {
+        while( obj->_line( this ) == 1 )
+             { process::next(); }
+        return obj->_line.data;
+    }
+
+    /*─······································································─*/
+
+    string_t read( ulong size=NODEPP_CHUNK_SIZE ) const noexcept {
+        while( obj->_read( this, size ) == 1 )
+             { process::next(); }
+        return obj->_read.data;
+    }
+
+    ulong write( const string_t& msg ) const noexcept {
+        while( obj->_write( this, msg ) == 1 )
+             { process::next(); }
+        return obj->_write.data;
+    }
+
+    /*─······································································─*/
+
+    virtual int _read ( char* bf, const ulong& sx ) const noexcept { return __read ( bf, sx ); }
+    virtual int _write( char* bf, const ulong& sx ) const noexcept { return __write( bf, sx ); }
+
+    /*─······································································─*/
+
+    virtual int __read( char* bf, const ulong& sx ) const noexcept {
+        if( is_closed() ){ return -1; } if( sx==0 ){ return 0; }
+        obj->feof =fread( bf, sizeof(char), sx, obj->fd );
+        return obj->feof<=0 ? -1 : obj->feof;
+    }
+
+    virtual int __write( char* bf, const ulong& sx ) const noexcept {
+        if( is_closed() ){ return -1; } if( sx==0 ){ return 0; }
+        obj->feof=fwrite( bf, sizeof(char), sx, obj->fd );
+        return obj->feof<=0 ? -1 : obj->feof;
+    }
+
+    /*─······································································─*/
+
+    int _write_( char* bf, const ulong& sx, ulong* sy ) const noexcept {
+    if( sx==0 || is_closed() ){ return -1; } while( *sy<sx ) {
+        int c = __write( bf + *sy, sx - *sy );
+        if( c==-2 ) /*--*/ { return -2; }
+        if( c > 0 ){ *sy+= c; continue; } 
+    break; } return *sy; }
+
+    int _read_( char* bf, const ulong& sx, ulong* sy ) const noexcept {
+    if( sx==0 || is_closed() ){ return -1; } while( *sy<sx ) {
+        int c = __read( bf + *sy, sx - *sy );
+        if( c==-2 ) /*--*/ { return -2; }
+        if( c > 0 ){ *sy+= c; continue; } 
+    break; } return *sy; }
+
+};}
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+#endif
+
+/*────────────────────────────────────────────────────────────────────────────*/

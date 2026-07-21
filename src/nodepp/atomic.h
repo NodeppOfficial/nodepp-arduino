@@ -9,15 +9,15 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_CONIO
-#define NODEPP_CONIO
+#ifndef NODEPP_ATOMIC
+#define NODEPP_ATOMIC
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if   _KERNEL_ == NODEPP_KERNEL_ARDUINO
-    #include "arduino/conio.h"
+#if (_KERNEL_==NODEPP_KERNEL_ARDUINO) && defined(NODEPP_THREAD_SUPPORTED)
+    #include "arduino/atomic.h"
 #else
-    #error "This OS Does not support conio.h"
+    #error "This OS Does not support atomic.h"
 #endif
 
 /*────────────────────────────────────────────────────────────────────────────*/

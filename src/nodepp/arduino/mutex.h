@@ -9,53 +9,64 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_EXCEPT
-#define NODEPP_EXCEPT
+#ifndef NODEPP_POSIX_MUTEX
+#define NODEPP_POSIX_MUTEX
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { class except_t {
+#include <pthread.h>
+
+/*────────────────────────────────────────────────────────────────────────────*/
+
+namespace nodepp { class mutex_t {
 protected:
 
-    string_t msg;
+    struct NODE {
+       ~NODE(){ pthread_mutex_destroy(&fd); }
+        pthread_mutex_t fd;
+    };  atomic_ptr_t<NODE> obj;
 
 public:
 
-    except_t( /*--*/ ) noexcept {}
-
-    except_t( null_t ) noexcept {}
-
+    mutex_t() : obj( new NODE() ) {
+        if( pthread_mutex_init(&obj->fd,NULL)!=0 )
+          { NODEPP_THROW_ERROR("Cant Start Mutex");  }
+    }
+    
     /*─······································································─*/
 
-    template< class T, class = typename type::enable_if<type::is_class<T>::value,T>::type >
-    except_t( const T& except_type ) noexcept { msg = except_type.what(); }
-
+    template< class T, class... V >
+    int operator() ( T callback, const V&... args ) const noexcept { 
+        return emit( callback, args... ); 
+    }
+    
     /*─······································································─*/
 
-    except_t( const string_t& message ) noexcept { msg = message; }
-
-    /*─······································································─*/
-
-    template< class... T >
-    except_t( const T&... message ) noexcept {
-        msg = string::join( " ", message... );
+    template< class T, class... V >
+    int emit( T callback, const V&... args ) const noexcept {
+        lock  (); int c=callback( args... ); 
+        unlock(); /*------------*/ return c;
     }
 
+    template< class T, class... V >
+    void lock( T callback, const V&... args ) const noexcept {
+         lock(); callback( args... ); unlock(); 
+    }
+    
     /*─······································································─*/
 
-    explicit operator bool(void) const noexcept { return !empty(); } 
+    void unlock() const noexcept { while( !_unlock() ){ /*unused*/ } }
+    void lock  () const noexcept { while( !_lock  () ){ /*unused*/ } }
 
     /*─······································································─*/
 
-    void       print() const noexcept { console::error(msg); }
-    bool       empty() const noexcept { return msg.empty(); }
-    const char* what() const noexcept { return msg.c_str(); }
-    operator   char*() const noexcept { return (char*)what(); }
-    string_t    data() const noexcept { return msg; }
-    string_t   value() const noexcept { return msg; }
+    bool _unlock() const noexcept { return pthread_mutex_unlock(&obj->fd)==0; }
+    bool _lock  () const noexcept { return pthread_mutex_lock  (&obj->fd)==0; }
 
 };}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
