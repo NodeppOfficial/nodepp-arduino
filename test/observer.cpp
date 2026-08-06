@@ -1,12 +1,16 @@
-#include "../src/nodepp/observer.h"
+#include <nodepp/nodepp.h>
+#include <nodepp/observer.h>
+#include <nodepp/test.h>
+
+using namespace nodepp;
 
 namespace TEST { namespace OBSERVER {
 
     void TEST_RUNNER(){
-        ptr_t<uint> totl = new uint(0);
-        ptr_t<uint> done = new uint(0);
-        ptr_t<uint> err  = new uint(0);
-        ptr_t<uint> skp  = new uint(0);
+        ptr_t<uint> totl ( 0UL );
+        ptr_t<uint> done ( 0UL );
+        ptr_t<uint> err  ( 0UL );
+        ptr_t<uint> skp  ( 0UL );
 
         auto test = TEST_CREATE();
 
@@ -32,7 +36,7 @@ namespace TEST { namespace OBSERVER {
 
         TEST_ADD( test, "TEST 2 | observer set", [](){
 
-            ptr_t<int> val = new int(0);
+            ptr_t<int> val ( 0UL );
 
             observer_t obj ({
                 { "var1", 10 },
@@ -40,7 +44,7 @@ namespace TEST { namespace OBSERVER {
                 { "var3", 30 },
             });
 
-            obj.once( "var2", [=]( any_t, any_t b ){
+            obj.once( "var2", [=]( ptr_t<observer_t> self, any_t, any_t b ){
                 *val = b.as<int>();
             }); obj.set("var2",30);
 

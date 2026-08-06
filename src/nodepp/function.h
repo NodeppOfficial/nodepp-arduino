@@ -16,15 +16,17 @@
 
 namespace nodepp { template< class V, class... T > class function_t {
 public:
-    
-    template< class F >
-    function_t( F f ) : func_ptr( new func_impl<F>(f) ) {}
+
+    template< class U >
+    function_t( const U& value ) noexcept : func_ptr( new func_impl<U>( value ) ) {}
 
     function_t( null_t ) noexcept : func_ptr(nullptr) {}
-   
+    
     function_t() noexcept : func_ptr(nullptr) {}
     
-    virtual ~function_t() noexcept {}
+    /*─······································································─*/
+
+    explicit operator bool(void) const noexcept { return func_ptr.null(); }
     
     /*─······································································─*/
 
@@ -33,38 +35,65 @@ public:
     bool     empty() const noexcept { return func_ptr.null (); }
     bool      null() const noexcept { return func_ptr.null (); }
     void      free() const noexcept { /*--*/ func_ptr.free (); }
+    void     clear() const noexcept { /*--*/ func_ptr.free (); }
     
     /*─······································································─*/
-
-    explicit operator bool(void)    const noexcept { return func_ptr.null(); }
     
-    V operator()( const T&... arg ) const /*----*/ { return emit( arg... );  }
+    template< typename U = V >
+    typename type::enable_if< type::is_same<U,void>::value, U >::type
+    operator()( const T&... arg ) const { emit( arg... ); }
     
-    V emit( const T&... arg ) const { 
-        if( !has_value() ){ return V(); }
-        return func_ptr->invoke( arg... ); 
-    }
+    template< typename U = V >
+    typename type::enable_if< type::is_same<U,void>::value, U >::type
+    emit( const T&... arg ) const { if( has_value() ){ 
+        func_ptr->invoke ( (void*) nullptr, arg... ); 
+    }}
+    
+    /*─······································································─*/
+    
+    template< typename U = V >
+    typename type::enable_if< !type::is_same<U,void>::value, U >::type
+    operator()( const T&... arg ) const { return emit( arg... ); }
+    
+    template< typename U = V >
+    typename type::enable_if< !type::is_same<U,void>::value, U >::type
+    emit( const T&... arg ) const { U out; if( has_value() ){
+        func_ptr->invoke ( &out, arg... );
+    } return out; }
     
 private:
 
     class func_base { public:
-        virtual ~func_base() { /*-----------------*/ }
-        virtual V invoke( const T&... arg ) const = 0;
+        virtual ~func_base () {}
+        virtual void invoke( V*, const T&... ) const {}
     };
     
     /*─······································································─*/
     
     template< class F >
-    class func_impl : public func_base {
+    class func_impl : public func_base { private:
+
+        template< typename U = V >
+        typename type::enable_if< type::is_same<U,void>::value, void >::type
+        invoker_helper( U*, ptr_t<F> cb, const T&... args ) const noexcept {
+            (*cb)( args... );
+        }
+
+        template< typename U = V >
+        typename type::enable_if< !type::is_same<U,void>::value, void >::type
+        invoker_helper( U* dst, ptr_t<F> cb, const T&... args ) const noexcept {
+            *dst = (*cb)( args... );
+        }
 
     public:
 
-        func_impl( const F& f ) : func(f) { /*------------------------*/ }
-        virtual V invoke( const T&... arg ) const { return func(arg...); }
+        virtual void invoke( V* out, const T&... arg ) const override { 
+            invoker_helper ( out, func, arg... );
+        }
 
-    private:
-        F func;
-    };
+        func_impl( const F& f ) : func( type::bind<F>(f) ) {}
+
+    private: ptr_t<F> func; };
     
     /*─······································································─*/
     
@@ -75,3 +104,5 @@ private:
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/

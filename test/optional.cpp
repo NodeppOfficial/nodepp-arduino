@@ -1,23 +1,37 @@
-#include "../src/nodepp/optional.h"
+#include <nodepp/nodepp.h>
+#include <nodepp/optional.h>
+#include <nodepp/test.h>
+
+using namespace nodepp;
 
 namespace TEST { namespace OPTION {
 
     void TEST_RUNNER(){
-        ptr_t<uint> totl = new uint(0);
-        ptr_t<uint> done = new uint(0);
-        ptr_t<uint> err  = new uint(0);
-        ptr_t<uint> skp  = new uint(0);
+        ptr_t<uint> totl ( 0UL );
+        ptr_t<uint> done ( 0UL );
+        ptr_t<uint> err  ( 0UL );
+        ptr_t<uint> skp  ( 0UL );
 
         auto test = TEST_CREATE();
 
         TEST_ADD( test, "TEST 1 | optional -> done", [](){
-            optional_t<string_t> x;
-            if( x.has_value() ){ TEST_FAIL(); } TEST_DONE();
+            do {
+
+                optional_t<string_t> x;
+                if( x.has_value() ){ TEST_FAIL(); }
+
+                        TEST_DONE();
+            } while(0); TEST_FAIL();
         });
 
         TEST_ADD( test, "TEST 2 | optional -> error", [](){
-            optional_t<string_t> x ( "hello world!" );
-            if( !x.has_value() ){ TEST_FAIL(); } TEST_DONE();
+            do {
+
+                optional_t<string_t> x ( "hello world!" );
+                if( !x.has_value() ){ TEST_FAIL(); }
+
+                        TEST_DONE();
+            } while(0); TEST_FAIL();
         });
 
         test.onClose.once([=](){
@@ -25,8 +39,8 @@ namespace TEST { namespace OPTION {
         });
 
         test.onDone([=](){ (*done)++; (*totl)++; });
-        test.onFail([=](){ (*err)++;  (*totl)++; });
-        test.onSkip([=](){ (*skp)++;  (*totl)++; });
+        test.onFail([=](){ (*err) ++; (*totl)++; });
+        test.onSkip([=](){ (*skp) ++; (*totl)++; });
 
         TEST_AWAIT( test );
 

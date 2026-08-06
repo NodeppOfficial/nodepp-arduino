@@ -17,16 +17,13 @@
 namespace nodepp { class any_t {
 public:
 
-    any_t( const char* f ) noexcept { set( string::to_string(f) ); }
-
-    any_t( null_t ) noexcept { /*---------*/ }
+    any_t( const char* value ) noexcept : any_ptr( new any_impl<string_t>( value ) ) {}
 
     template< class T >
-    any_t( const T& f ) noexcept { set( f ); }
+    any_t( const T& value ) noexcept : any_ptr( new any_impl<T>( value ) ) {}
 
-    virtual ~any_t() noexcept {}
-
-    /*----*/ any_t() noexcept {}
+    any_t( null_t ) noexcept {}
+    any_t()         noexcept {}
 
     /*─······································································─*/
 
@@ -38,37 +35,41 @@ public:
 
     /*─······································································─*/
 
-    template< class T >
-    void set( const T& f ) noexcept { any_ptr = new any_impl<T>(f); }
-
-    template< class T >
-    T as() const { return get<T>(); }
-
-    template< class T >
-    T get() const {
-
-        if( !has_value() ) /*----*/ { ARDUINO_ERROR( MEMSTR("any_t is null") ); } /*---------*/
-        if( type_size()!=sizeof(T) ){ ARDUINO_ERROR( MEMSTR("any_t incompatible sizetype") ); }
-
-        const ulong size = sizeof(T) / sizeof(char);
-        char any[ size ]; any_ptr->get((void*)&any);
-        return *(T*)(any); /*---------------------*/
-
-    }
+    template< class T > 
+    explicit operator T(void) const noexcept { return as<T>(); }
 
     /*─······································································─*/
 
-    template< class T >
-    explicit operator T(void) const noexcept { return get<T>(); }
+    template< typename T >
+    typename type::enable_if< type::is_same<T,any_t>::value, bool >::type
+    is() const noexcept { return true; }
+
+    template< typename T >
+    typename type::enable_if< type::is_same<T,any_t>::value, any_t >::type
+    as() const { return *this; }
+
+    /*─······································································─*/
+
+    template< typename T >
+    typename type::enable_if< !type::is_same<T,any_t>::value, bool >::type
+    is() const noexcept { return type_size()==sizeof(T); }
+
+    template< typename T >
+    typename type::enable_if< !type::is_same<T,any_t>::value, T >::type
+    as() const { void* ptr = nullptr; any_ptr->ptr( ptr ); 
+
+        if( ptr==nullptr ){ NODEPP_THROW_ERROR("any_t has no value"); }
+        if( !is<T>() )/**/{ NODEPP_THROW_ERROR("any_t size isn't aligned"); }
+
+    return * type::cast<T>(ptr); }
 
 private:
 
     class any_base {
     public:
-        virtual ~any_base() noexcept {}
-        virtual void  get( void* /*unused*/ ) const noexcept {}
-        virtual void  set( void* /*unused*/ ) /*-*/ noexcept {}
-        virtual ulong size() /*------------*/ const noexcept =0;
+        virtual ~any_base () /*---------*/ noexcept {}
+        virtual void  ptr ( void*& ) const noexcept {}
+        virtual ulong size() /*---*/ const noexcept =0;
     };
 
     /*─······································································─*/
@@ -76,10 +77,9 @@ private:
     template< class T >
     class any_impl : public any_base {
     public:
-        any_impl( const T& f ) noexcept : any( type::bind(f) ) {}
-        virtual ulong size() /*------*/ const noexcept { return any.null(/**/) ?0 : sizeof(T)  ; }
-        virtual void  get( void* argc ) const noexcept { memcpy( argc, (void*)&any, sizeof(T) ); }
-        virtual void  set( void* argc ) /*-*/ noexcept { memcpy( (void*)&any, argc, sizeof(T) ); }
+        any_impl( const T& f ) noexcept : any( type::bind<T>(f) ) {}
+        virtual ulong size() /*-------*/ const noexcept override { return any.null() ?0 : sizeof(T)  ; }
+        virtual void  ptr( void*& argc ) const noexcept override { argc = &any; }
     private:
         ptr_t<T> any;
     };
@@ -93,3 +93,5 @@ private:
 /*────────────────────────────────────────────────────────────────────────────*/
 
 #endif
+
+/*────────────────────────────────────────────────────────────────────────────*/
