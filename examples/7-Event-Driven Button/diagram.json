@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-nano", "id": "nano", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -70.8,
+      "left": 3.8,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": -70.8,
+      "left": 23,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led3",
+      "top": -70.8,
+      "left": 42.6,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led4",
+      "top": -70.8,
+      "left": 90.2,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led5",
+      "top": -70.8,
+      "left": 109.8,
+      "attrs": { "color": "red", "flip": "1" }
+    },
+    { "type": "wokwi-gnd", "id": "gnd1", "top": 9.6, "left": -87, "attrs": {} },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -137.8,
+      "left": 0,
+      "attrs": { "color": "green", "xray": "" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r6",
+      "top": -111.25,
+      "left": -76.8,
+      "attrs": { "value": "1000" }
+    }
+  ],
+  "connections": [
+    [ "led1:A", "nano:12", "green", [ "v0" ] ],
+    [ "led2:A", "nano:11", "green", [ "v9.6", "h-8.7" ] ],
+    [ "led3:A", "nano:10", "green", [ "v9.6", "h-19.2" ] ],
+    [ "led4:A", "nano:9", "green", [ "v9.6", "h-57.2" ] ],
+    [ "led5:A", "nano:8", "green", [ "v9.6", "h-66.8" ] ],
+    [ "led5:C", "led4:C", "black", [ "v19.2", "h-19.6" ] ],
+    [ "led5:C", "led3:C", "black", [ "v19.2", "h-67.2" ] ],
+    [ "led5:C", "led2:C", "black", [ "v19.2", "h-86.8" ] ],
+    [ "led5:C", "led1:C", "black", [ "v19.2", "h-106" ] ],
+    [ "gnd1:GND", "led5:C", "black", [ "v-19.2", "h163.2" ] ],
+    [ "btn1:2.r", "nano:7", "green", [ "h9.8", "v86.6", "h-9.6" ] ],
+    [ "btn1:2.l", "r6:2", "green", [ "h0" ] ],
+    [ "gnd1:GND", "r6:1", "black", [ "v0" ] ],
+    [ "nano:VIN", "btn1:1.l", "red", [ "v14.4", "h-250.1", "v-201.6", "h96" ] ]
+  ],
+  "dependencies": {}
+}

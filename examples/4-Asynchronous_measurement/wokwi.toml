@@ -1,0 +1,3 @@
+[wokwi]
+version = 1
+firmware = './bin/bin_raw.hex'
