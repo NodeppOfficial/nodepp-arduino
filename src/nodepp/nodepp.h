@@ -18,74 +18,78 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace process { loop_t _loop_;
+namespace nodepp { namespace process {
 
-    /*─······································································─*/
-
-    inline ulong size(){ return _TASK_ + _loop_.size(); }
-
-    inline void clear(){ _TASK_=0; _loop_.clear(); }
-
-    inline bool empty(){ return size() <= 0; }
-
-    /*─······································································─*/
-
-    inline bool should_close(){ return _EXIT_ || empty(); }
-
-    inline void clear( void* address ){
-         if( address == nullptr ){ return; }
-         memset( address, 0, sizeof(bool) );
-    }
-
-    inline void exit( int err=0 ){ 
-        if( should_close() ){ goto DONE; }
-        _EXIT_=true; /**/ clear(); 
-        DONE:; ARDUINO_RESET();
-        ::exit(err);
-    }
-
-    /*─······································································─*/
-
-    inline int next(){ static uchar count=0; if( count%64==0 ){ yield(); }
-    count++ ; coStart
-        if( !_loop_.empty() ) { _loop_.next(); coNext; }
-    coStop }
+    inline array_t<string_t>& NODEPP_ARGMNT(){ /*-*/ static array_t<string_t> /*-*/ out; return out; }
+    inline kernel_t& /*----*/ NODEPP_EVLOOP(){ thread_local static kernel_t /*---*/ out; return out; }
+    inline invoker_t<any_t> & NODEPP_INVOKE(){ thread_local static invoker_t<any_t> out; return out; }
     
     /*─······································································─*/
 
     template< class... T >
-    void* loop( const T&... args ){ return _loop_.add( args... ); }
+    void revoke( const T&... args ){ NODEPP_INVOKE().off( args... ); }
 
     template< class... T >
-    void* add ( const T&... args ){ return _loop_.add( args... ); }
+    int call( const T&... args ){ return NODEPP_INVOKE().emit( args... ); }
+
+    template< class... T >
+    uint64_t invoke( const T&... args ){ return NODEPP_INVOKE().add( args... ); }
+    
+    /*─······································································─*/
+
+    template< class... T >
+    void await( const T&... args ){ while(NODEPP_EVLOOP().await( args... )==1){/*unused*/} }
+
+    template< class... T >
+    ptr_t<task_t> loop( const T&... args ){ return NODEPP_EVLOOP().loop_add( args... ); }
+
+    template< class... T >
+    ptr_t<task_t> poll( const T&... args ){ return NODEPP_EVLOOP().poll_add( args... ); }
+
+    template< class... T >
+    ptr_t<task_t> add ( const T&... args ){ return NODEPP_EVLOOP().loop_add( args... ); }
+    
+    /*─······································································─*/
+
+    inline void clear( ptr_t<task_t> address ){ NODEPP_EVLOOP().off( address ); }
+    inline void   off( ptr_t<task_t> address ){ NODEPP_EVLOOP().off( address ); }
+    inline int   wake() /*-----------------*/ { return NODEPP_EVLOOP().wake (); }
 
     /*─······································································─*/
 
-    template< class T, class... V >
-    void await( T cb, const V&... args ){ ++_TASK_;
-         while( cb( args... )>=0 && !should_close() )
-              { process::next(); } 
-    --_TASK_; }
+    inline bool should_close(){ return NODEPP_EVLOOP().should_close(); }
+    inline bool        empty(){ return NODEPP_EVLOOP().empty(); }
+    inline ulong        size(){ return NODEPP_EVLOOP().size (); }
+    inline void        clear(){ /*--*/ NODEPP_EVLOOP().clear(); }
+
+    /*─······································································─*/
+
+    inline void exit ( int err=0 ){ ARDUINO_RESET(); }
+
+    inline void reset(){ ARDUINO_RESET(); }
+
+    inline int next(){ 
+        /*--*/ NODEPP_ALLOC ().next();
+        return NODEPP_EVLOOP().next(); 
+    }
 
 }}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace process { array_t<string_t> args;
+namespace nodepp { namespace process {
+
+    inline array_t<string_t>& arguments() { return NODEPP_ARGMNT(); }
+    inline kernel_t& /*----*/ kernel   () { return NODEPP_EVLOOP(); }
 
     template< class... T >
-    void error( const T&... msg ){ ARDUINO_ERROR( msg... ); }
-
-    inline void start(){ process::yield(); }
-
-    inline void reset(){ ARDUINO_RESET(); }
+    void error( const T&... msg ){ NODEPP_THROW_ERROR( msg... ); }
 
     /*─······································································─*/
 
-    inline void stop(){ 
-        while(!process::should_close() )
-             { process::next(); }
-        process::exit(0);
+    inline void wait (){ 
+        while( !process::should_close() ){ process::next (); }   
+        /*------------------------------*/ process::clear();
     }
 
 }}
