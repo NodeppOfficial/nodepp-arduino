@@ -9,32 +9,12 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#ifndef NODEPP_SLEEP
-#define NODEPP_SLEEP
+#ifndef NODEPP_sleep
+#define NODEPP_sleep
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace process {
-
-    inline ulong seconds(){ return ::millis() / 1000; }
-
-    inline ulong  micros(){ return ::micros(); }
-
-    inline ulong  millis(){ return ::millis(); }
-
-}}
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
-namespace nodepp { namespace process {
-
-    inline void delay( ulong time ){ ::delay( time ); }
-
-    inline ulong now(){ return millis(); }
-
-    inline void yield(){ delay(TIMEOUT); }
-
-}}
+#include "arduino/sleep.h"
 
 /*────────────────────────────────────────────────────────────────────────────*/
 

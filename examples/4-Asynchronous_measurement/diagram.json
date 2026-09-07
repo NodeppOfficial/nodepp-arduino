@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-nano", "id": "nano", "top": 72, "left": -19.7, "attrs": {} },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "ultrasonic1",
+      "top": -132.9,
+      "left": -42.5,
+      "attrs": { "distance": "400" }
+    },
+    {
+      "type": "wokwi-slide-potentiometer",
+      "id": "pot1",
+      "top": 177.8,
+      "left": -20.2,
+      "attrs": { "travelLength": "30" }
+    },
+    { "type": "wokwi-gnd", "id": "gnd1", "top": 249.6, "left": -106.2, "attrs": {} },
+    { "type": "wokwi-vcc", "id": "vcc1", "top": -162.44, "left": -86.4, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -118.8,
+      "left": 301.4,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": -118.8,
+      "left": 320.6,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led3",
+      "top": -118.8,
+      "left": 339.8,
+      "attrs": { "color": "red" }
+    },
+    { "type": "wokwi-led", "id": "led4", "top": -118.8, "left": 359, "attrs": { "color": "red" } },
+    {
+      "type": "wokwi-led",
+      "id": "led5",
+      "top": -118.8,
+      "left": 378.2,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led6",
+      "top": -118.8,
+      "left": 397.4,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -63.25,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": -72.85,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r3",
+      "top": -53.65,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r4",
+      "top": -44.05,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r5",
+      "top": -34.45,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r6",
+      "top": -24.85,
+      "left": 441.6,
+      "attrs": { "value": "1000" }
+    },
+    { "type": "wokwi-74hc595", "id": "sr1", "top": 219.6, "left": 216.64, "attrs": {} },
+    {
+      "type": "wokwi-7segment",
+      "id": "sevseg1",
+      "top": 63.42,
+      "left": 192.56,
+      "attrs": { "digits": "2", "colon": "", "common": "cathode" }
+    },
+    { "type": "wokwi-gate-not", "id": "not1", "top": 278.4, "left": 211.2, "attrs": {} }
+  ],
+  "connections": [
+    [ "vcc1:VCC", "ultrasonic1:VCC", "red", [ "v105.6", "h105.6" ] ],
+    [ "vcc1:VCC", "nano:5V", "red", [ "v297.6", "h182.4" ] ],
+    [ "gnd1:GND", "ultrasonic1:GND", "black", [ "v-268.8", "h153.6" ] ],
+    [ "gnd1:GND", "nano:GND.1", "black", [ "v-76.8", "h220.8" ] ],
+    [ "gnd1:GND", "pot1:GND", "black", [ "v-76.8", "h278.4" ] ],
+    [ "vcc1:VCC", "pot1:VCC", "red", [ "v0" ] ],
+    [ "ultrasonic1:TRIG", "nano:12", "green", [ "v28.8", "h-38.8" ] ],
+    [ "ultrasonic1:ECHO", "nano:11", "green", [ "v28.8", "h-39.2" ] ],
+    [ "pot1:SIG", "nano:A7", "green", [ "h-67.2", "v-87.2", "h182.4" ] ],
+    [ "r2:1", "led6:A", "green", [ "v0", "h-19.2" ] ],
+    [ "r1:1", "led5:A", "green", [ "v0", "h-38.4" ] ],
+    [ "r3:1", "led4:A", "green", [ "v0", "h-57.6" ] ],
+    [ "r4:1", "led3:A", "green", [ "v0", "h-76.8" ] ],
+    [ "r5:1", "led2:A", "green", [ "v0", "h-96" ] ],
+    [ "r6:1", "led1:A", "green", [ "v0", "h-115.2" ] ],
+    [ "gnd1:GND", "r6:2", "black", [ "v-76.8", "h604.8" ] ],
+    [ "r6:2", "r5:2", "green", [ "v0" ] ],
+    [ "r5:2", "r4:2", "green", [ "v0" ] ],
+    [ "r3:2", "r4:2", "green", [ "v0" ] ],
+    [ "r3:2", "r1:2", "green", [ "v0" ] ],
+    [ "r1:2", "r2:2", "green", [ "v0" ] ],
+    [ "nano:10", "led6:A", "green", [ "v-86.4", "h9.6" ] ],
+    [ "led5:A", "nano:9", "green", [ "v67.2", "h-374.4" ] ],
+    [ "led4:A", "nano:8", "green", [ "v67.2", "h-345.6" ] ],
+    [ "led3:A", "nano:7", "green", [ "v67.2", "h-316.8" ] ],
+    [ "led2:A", "nano:6", "green", [ "v67.2", "h-288" ] ],
+    [ "nano:5", "led1:A", "green", [ "v-86.4", "h259.2" ] ],
+    [ "gnd1:GND", "led6:C", "black", [ "v-76.8", "h508.8" ] ],
+    [ "led5:C", "led6:C", "black", [ "v76.8", "h19.6" ] ],
+    [ "led4:C", "led6:C", "black", [ "v76.8", "h38.8" ] ],
+    [ "led3:C", "led6:C", "black", [ "v76.8", "h58" ] ],
+    [ "led2:C", "led6:C", "black", [ "v76.8", "h77.2" ] ],
+    [ "led1:C", "led6:C", "black", [ "v76.8", "h96.4" ] ],
+    [ "vcc1:VCC", "sr1:VCC", "red", [ "v297.6", "h307.2" ] ],
+    [ "gnd1:GND", "sr1:GND", "black", [ "v-76.8", "h403.2", "v86.4", "h-19.2" ] ],
+    [ "gnd1:GND", "sr1:OE", "black", [ "v-76.8", "h364.8" ] ],
+    [ "vcc1:VCC", "sr1:MR", "red", [ "v297.6", "h355.2" ] ],
+    [ "sevseg1:A", "sr1:Q0", "green", [ "v-19.2", "h124.8", "v105.6", "h-115.2" ] ],
+    [
+      "sr1:Q1",
+      "sevseg1:B",
+      "green",
+      [ "v9.6", "h-9.6", "v-105.6", "h134.4", "v-105.6", "h-115.2" ]
+    ],
+    [ "sevseg1:C", "sr1:Q2", "green", [ "v18.36", "h-9.6", "v105.6", "h19.2" ] ],
+    [ "sevseg1:D", "sr1:Q3", "green", [ "v18.36", "h-38.4", "v105.6", "h28.8" ] ],
+    [ "sevseg1:E", "sr1:Q4", "green", [ "v18.36", "h-28.8", "v105.6", "h38.4" ] ],
+    [
+      "sr1:Q5",
+      "sevseg1:F",
+      "green",
+      [ "v9.6", "h-48", "v-105.6", "h134.4", "v-105.6", "h-86.4" ]
+    ],
+    [ "sevseg1:G", "sr1:Q6", "green", [ "h0", "v18.36", "h-48", "v105.6", "h57.6" ] ],
+    [ "sr1:Q7", "not1:IN", "green", [ "v19.2", "h-67.2" ] ],
+    [ "sevseg1:DIG1", "not1:OUT", "green", [ "v-19.2", "h105.6", "v249.6" ] ],
+    [ "sr1:Q7", "sevseg1:DIG2", "green", [ "v19.2", "h67.2", "v-220.8", "h-96" ] ],
+    [ "nano:4", "sr1:DS", "green", [ "v-86.4", "h268.8", "v163.2", "h-105.6" ] ],
+    [ "sr1:STCP", "nano:3", "green", [ "v-66", "h86.4", "v-163.2", "h-259.2" ] ],
+    [ "sr1:SHCP", "nano:2", "green", [ "v-66", "h76.8", "v-163.2", "h-249.6" ] ]
+  ],
+  "dependencies": {}
+}

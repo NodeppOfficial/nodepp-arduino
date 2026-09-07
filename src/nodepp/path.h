@@ -14,23 +14,23 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#if false // _KERNEL_ == NODEPP_KERNEL_WINDOWS
+#if false // NODEPP_KERNEL == NODEPP_KERNEL_WINDOWS
 
-#define PATH_SEP  MEMSTR( "\\\\" )
-#define PATH_ROOT MEMSTR( "c:\\\\" )
-#define PATH_ONE  MEMSTR( "[^\\\\]+" )
-#define PATH_SEL  MEMSTR( "/+|\\\\+" )
-#define PATH_BEG  MEMSTR( "\\w:\\\\" )
-#define PATH_PEG  MEMSTR( "^\\w:\\\\" )
+#define NODEPP_PATH_SEP  "\\\\"
+#define NODEPP_PATH_ROOT "c:\\\\"
+#define NODEPP_PATH_ONE  "[^\\\\]+"
+#define NODEPP_PATH_SEL  "/+|\\\\+"
+#define NODEPP_PATH_BEG  "\\w:\\\\"
+#define NODEPP_PATH_PEG  "^\\w:\\\\"
 
 #else
 
-#define PATH_SEP  MEMSTR( "/" )
-#define PATH_ROOT MEMSTR( "./" )
-#define PATH_ONE  MEMSTR( "[^/]+" )
-#define PATH_BEG  MEMSTR( "/" )
-#define PATH_PEG  MEMSTR( "^/" )
-#define PATH_SEL  MEMSTR( "/+|\\\\+" ) 
+#define NODEPP_PATH_SEP  "/"
+#define NODEPP_PATH_ROOT "./"
+#define NODEPP_PATH_ONE  "[^/]+"
+#define NODEPP_PATH_BEG  "/"
+#define NODEPP_PATH_PEG  "^/"
+#define NODEPP_PATH_SEL  "/+|\\\\+"
 
 #endif
 
@@ -54,75 +54,75 @@ namespace nodepp { struct path_t {
 /*────────────────────────────────────────────────────────────────────────────*/
 
 namespace nodepp { namespace _path_ { 
-inline map_t<string_t,string_t>& mimetype() {
-static map_t<string_t,string_t>  out ({
+inline /*--------*/ map_t<string_t,string_t>& mimetype() {
+thread_local static map_t<string_t,string_t>  out ({
 
-    { MEMSTR( "txt" ) , MEMSTR( "text/plain" ) },
-    { MEMSTR( "text" ), MEMSTR( "text/plain" ) },
+    { "txt",  "text/plain" },
+    { "text", "text/plain" },
 
-    { MEMSTR( "otf" ),  MEMSTR( "font/otf" ) },
-    { MEMSTR( "ttf" ),  MEMSTR( "font/ttf" ) },
-    { MEMSTR( "woff" ), MEMSTR( "font/woff" )  },
-    { MEMSTR( "woff2" ),MEMSTR( "font/woff2" ) },
+    { "otf",  "font/otf" },
+    { "ttf",  "font/ttf" },
+    { "woff", "font/woff" },
+    { "woff2","font/woff2" },
 
-    { MEMSTR( "oga" ),  MEMSTR( "audio/ogg" ) },
-    { MEMSTR( "aac" ),  MEMSTR( "audio/aac" ) },
-    { MEMSTR( "wav" ),  MEMSTR( "audio/wav" ) },
-    { MEMSTR( "mp3" ),  MEMSTR( "audio/mpeg" ) },
-    { MEMSTR( "opus" ), MEMSTR( "audio/opus" ) },
-    { MEMSTR( "weba" ), MEMSTR( "audio/webm" ) },
+    { "oga",  "audio/ogg" },
+    { "aac",  "audio/aac" },
+    { "wav",  "audio/wav" },
+    { "mp3",  "audio/mpeg" },
+    { "opus", "audio/opus" },
+    { "weba", "audio/webm" },
 
-    { MEMSTR( "ogv" ),  MEMSTR( "video/ogg" ) },
-    { MEMSTR( "mp4" ),  MEMSTR( "video/mp4" ) },
-    { MEMSTR( "ts" ),   MEMSTR( "video/mp2t" ) },
-    { MEMSTR( "webm" ), MEMSTR( "video/webm" ) },
-    { MEMSTR( "mpeg" ), MEMSTR( "video/mpeg" ) },
-    { MEMSTR( "avi" ),  MEMSTR( "video/x-msvideo" ) },
+    { "ogv",  "video/ogg" },
+    { "mp4",  "video/mp4" },
+    { "ts",   "video/mp2t" },
+    { "webm", "video/webm" },
+    { "mpeg", "video/mpeg" },
+    { "avi",  "video/x-msvideo" },
 
-    { MEMSTR( "c" ),    MEMSTR( "text/X-C" ) },
-    { MEMSTR( "css" ),  MEMSTR( "text/css" ) },
-    { MEMSTR( "csv" ),  MEMSTR( "text/csv" ) },
-    { MEMSTR( "html" ), MEMSTR( "text/html" ) },
-    { MEMSTR( "scss" ), MEMSTR( "text/scss" ) },
-    { MEMSTR( "cpp" ),  MEMSTR( "text/X-CPP" ) },
-    { MEMSTR( "ics" ),  MEMSTR( "text/calendar" ) },
-    { MEMSTR( "js" ),   MEMSTR( "text/javascript" ) },
-    { MEMSTR( "xml" ),  MEMSTR( "application/xhtml+xml" ) },
+    { "c",    "text/X-C" },
+    { "css",  "text/css" },
+    { "csv",  "text/csv" },
+    { "html", "text/html" },
+    { "scss", "text/scss" },
+    { "cpp",  "text/X-CPP" },
+    { "ics",  "text/calendar" },
+    { "js",   "text/javascript" },
+    { "xml",  "application/xhtml+xml" },
 
-    { MEMSTR( "bmp" ),  MEMSTR( "image/bmp" ) },
-    { MEMSTR( "gif" ),  MEMSTR( "image/gif" ) },
-    { MEMSTR( "png" ),  MEMSTR( "image/png" ) },
-    { MEMSTR( "jpg" ),  MEMSTR( "image/jpeg" ) },
-    { MEMSTR( "jpeg" ), MEMSTR( "image/jpeg" ) },
-    { MEMSTR( "webp" ), MEMSTR( "image/webp" ) },
-    { MEMSTR( "svg" ),  MEMSTR( "image/svg+xml" ) },
-    { MEMSTR( "ico" ),  MEMSTR( "image/vnd.microsoft.icon" ) },
+    { "bmp",  "image/bmp" },
+    { "gif",  "image/gif" },
+    { "png",  "image/png" },
+    { "jpg",  "image/jpeg" },
+    { "jpeg", "image/jpeg" },
+    { "webp", "image/webp" },
+    { "svg",  "image/svg+xml" },
+    { "ico",  "image/vnd.microsoft.icon" },
 
-    { MEMSTR( "url" ),  MEMSTR( "application/x-www-form-urlencoded" ) },
+    { "url",  "application/x-www-form-urlencoded" },
 
-    { MEMSTR( "zip" ),  MEMSTR( "application/zip" ) },
-    { MEMSTR( "gz" ),   MEMSTR( "application/gzip" ) },
-    { MEMSTR( ".h" ),   MEMSTR( "application/x-.h" ) },
-    { MEMSTR( "json" ), MEMSTR( "application/json" ) },
-    { MEMSTR( "wasm" ), MEMSTR( "application/wasm" ) },
-    { MEMSTR( "tar" ),  MEMSTR( "application/x-tar" ) },
-    { MEMSTR( "rar" ),  MEMSTR( "application/vnd.rar" ) },
-    { MEMSTR( "7z" ),   MEMSTR( "application/x-7z-compressed" ) },
-    { MEMSTR( "m3u8" ), MEMSTR( "application/vnd.apple.mpegurl" ) },
-    { MEMSTR( "exe" ),  MEMSTR( "application/vnd.microsoft.portable-executable" ) },
+    { "zip",  "application/zip" },
+    { "gz",   "application/gzip" },
+    { ".h",   "application/x-.h" },
+    { "json", "application/json" },
+    { "wasm", "application/wasm" },
+    { "tar",  "application/x-tar" },
+    { "rar",  "application/vnd.rar" },
+    { "7z",   "application/x-7z-compressed" },
+    { "m3u8", "application/vnd.apple.mpegurl" },
+    { "exe",  "application/vnd.microsoft.portable-executable" },
 
-    { MEMSTR( "pdf" ),  MEMSTR( "application/pdf" ) },
-    { MEMSTR( "doc" ),  MEMSTR( "application/msword" ) },
-    { MEMSTR( "vsd" ),  MEMSTR( "application/vnd.visio" ) },
-    { MEMSTR( "xls" ),  MEMSTR( "application/vnd.ms-excel" ) },
-    { MEMSTR( "ppt" ),  MEMSTR( "application/vnd.ms-powerpoint" ) },
-    { MEMSTR( "swf" ),  MEMSTR( "application/x-shockwave-fla.h" ) },
-    { MEMSTR( "ods" ),  MEMSTR( "application/vnd.oasis.opendocument.spreadsheet" ) },
-    { MEMSTR( "odp" ),  MEMSTR( "application/vnd.oasis.opendocument.presentation" ) },
-    { MEMSTR( "odt" ),  MEMSTR( "application/vnd.oasis.opendocument.presentation" ) },
-    { MEMSTR( "xlsx" ), MEMSTR( "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ) },
-    { MEMSTR( "docx" ), MEMSTR( "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ) },
-    { MEMSTR( "pptx" ), MEMSTR( "application/vnd.openxmlformats-officedocument.presentationml.presentation" ) }
+    { "pdf",  "application/pdf" },
+    { "doc",  "application/msword" },
+    { "vsd",  "application/vnd.visio" },
+    { "xls",  "application/vnd.ms-excel" },
+    { "ppt",  "application/vnd.ms-powerpoint" },
+    { "swf",  "application/x-shockwave-fla.h" },
+    { "ods",  "application/vnd.oasis.opendocument.spreadsheet" },
+    { "odp",  "application/vnd.oasis.opendocument.presentation" },
+    { "odt",  "application/vnd.oasis.opendocument.presentation" },
+    { "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+    { "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+    { "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation" }
 
 }); return out; }}}
 
@@ -130,8 +130,8 @@ static map_t<string_t,string_t>  out ({
 
 namespace nodepp { namespace path {
 
-    inline string_t normalize( string_t path ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    inline string_t normalize( const string_t& path ){
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto sec = reg0.split( path );
         queue_t<string_t> nsec; ulong y=0;
 
@@ -148,21 +148,21 @@ namespace nodepp { namespace path {
             } nsec.push( sec[x] );
         }
 
-        return array_t<string_t>( nsec.data() ).join( PATH_SEP );
+        return array_t<string_t>( nsec.data() ).join( NODEPP_PATH_SEP );
     }
 
     /*─······································································─*/
 
     inline bool is_absolute( const string_t& path ){ 
-        static regex_t reg3 = regex_t( PATH_PEG );
+    thread_local static regex_t reg3 = regex_t( NODEPP_PATH_PEG );
         return reg3.test(path); 
     }
 
     /*─······································································─*/
 
     inline string_t extname( const string_t& path ){ string_t m;
-        regex_t reg( MEMSTR( "\\.\\w+$" ) ); if( !reg.test( path ) )
-          { return m; } return reg.match( path ).slice(1);
+    thread_local static regex_t reg("\\.\\w+$"); if( !reg.test( path ) )
+        { return m; } return reg.match( path ).slice(1);
     }
 
     /*─······································································─*/
@@ -170,29 +170,29 @@ namespace nodepp { namespace path {
     inline string_t mimetype( const string_t& path ){
         string_t ext = extname( path ); if( ext.empty() )
         { return ext; } if( !_path_::mimetype().has( ext ) )
-        { return string::format( MEMSTR( "aplication/%s" ), ext.c_str()); }
+        { return string::format("aplication/%s",ext.c_str()); }
           return _path_::mimetype()[ ext ];
     }
 
     inline string_t mimetype( const path_t& path ){
         if( path.ext.empty() ) { return path.ext; }
         if( !_path_::mimetype().has( path.ext ) )
-          { return string::format( MEMSTR( "aplication/%s" ), path.ext.c_str()); }
+          { return string::format("aplication/%s",path.ext.c_str()); }
             return _path_::mimetype()[ path.ext ];
     }
 
     /*─······································································─*/
 
     inline string_t dirname( const string_t& path ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto vec = reg0.split( path );
-        vec.pop(); return vec.join( PATH_SEP );
+        vec.pop(); return vec.join( NODEPP_PATH_SEP );
     }
 
     /*─······································································─*/
 
     inline string_t basename( const string_t& path ){
-        static regex_t reg1 = regex_t( PATH_ONE );
+    thread_local static regex_t reg1 = regex_t( NODEPP_PATH_ONE );
         auto vec = reg1.match_all( path );
         if ( vec.empty() ){ return nullptr; }
         return vec[ vec.last() ];
@@ -201,7 +201,7 @@ namespace nodepp { namespace path {
     /*─······································································─*/
 
     inline string_t basename( const string_t& path, const string_t& del ){
-        static regex_t reg1 = regex_t( PATH_ONE );
+    thread_local static regex_t reg1 = regex_t( NODEPP_PATH_ONE );
         auto vec = reg1.match_all( path );
         if ( vec.empty() ){ return nullptr; }
         return regex::replace( vec[ vec.last() ], del, "" );
@@ -209,12 +209,12 @@ namespace nodepp { namespace path {
 
     /*─······································································─*/
 
-    inline string_t format( path_t& obj ) { string_t _path;
+    inline string_t format( const path_t& obj ) { string_t _path;
 
         if( !obj.path.empty() ){ return obj.path;   }
 
-        if( !obj.root.empty() ){ _path += obj.root ; }
-        else                   { _path += PATH_ROOT; }
+        if( !obj.root.empty() ){ _path += obj.root; }
+        else                   { _path += NODEPP_PATH_ROOT; }
 
         if( !obj.dir .empty() ){ _path += obj.dir;  }
         if( !obj.base.empty() ){ _path += obj.base; }
@@ -229,11 +229,11 @@ namespace nodepp { namespace path {
 
     /*─······································································─*/
 
-    inline path_t parse( const string_t& path ) { path_t out;
-        static regex_t reg2 = regex_t( PATH_PEG );
+    inline path_t parse( const string_t& path ) {    
+    thread_local static regex_t reg2 = regex_t( NODEPP_PATH_PEG ); path_t out;
 
-        if( reg2.test( path ) ) out.root = PATH_BEG ;
-        else /*--------------*/ out.root = PATH_ROOT;
+        if( reg2.test( path ) ){ out.root = NODEPP_PATH_BEG ; }
+        else /*--------------*/{ out.root = NODEPP_PATH_ROOT; }
 
         out.path = path;
         out.ext  = extname ( path );
@@ -248,7 +248,7 @@ namespace nodepp { namespace path {
     /*─······································································─*/
 
     inline string_t relative( const string_t& path_a, const string_t& path_b ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t  reg0 = regex_t( NODEPP_PATH_SEL );
 
         auto secA = reg0.split( path::normalize(path_a) );
         auto secB = reg0.split( path::normalize(path_b) );
@@ -261,66 +261,66 @@ namespace nodepp { namespace path {
         for ( ulong x=y; x<secA.size(); ++x ){ sec.push(    ".." ); }
         for ( ulong x=y; x<secB.size(); ++x ){ sec.push( secB[x] ); }
 
-        return array_t<string_t>( sec.data() ).join( PATH_SEP );
+        return array_t<string_t>( sec.data() ).join( NODEPP_PATH_SEP );
     }
 
     /*─······································································─*/
 
     inline string_t push( const string_t& path, const string_t& dir ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto sec = reg0.split( path::normalize(path) );
              sec.push( dir ); /*---------------------*/
-             return path::normalize( sec.join( PATH_SEP ) );
+             return path::normalize( sec.join( NODEPP_PATH_SEP ) );
     }
 
     inline string_t unshift( const string_t& path, const string_t& dir ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto sec = reg0.split( path::normalize(path) );
              sec.unshift( dir ); /*------------------*/
-             return path::normalize( sec.join( PATH_SEP ) );
+             return path::normalize( sec.join( NODEPP_PATH_SEP ) );
     }
 
     /*─······································································─*/
 
     inline string_t pop( const string_t& path ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto sec = reg0.split( path::normalize(path) );
-             sec.pop(); return sec.join( PATH_SEP );
+             sec.pop(); return sec.join( NODEPP_PATH_SEP );
     }
 
     inline string_t shift( const string_t& path ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         auto sec = reg0.split( path::normalize(path) );
-             sec.shift(); return sec.join( PATH_SEP );
+             sec.shift(); return sec.join( NODEPP_PATH_SEP );
     }
 
     /*─······································································─*/
 
     inline array_t<string_t> split( const string_t& path ){
-        static regex_t reg0 = regex_t( PATH_SEL );
+    thread_local static regex_t reg0 = regex_t( NODEPP_PATH_SEL );
         return reg0.split( path::normalize(path) );
     }
 
     template< class T, ulong N >
-    string_t join( string_t (& value)[N] ){
+    string_t join( const string_t (&value)[N] ){
       return array_t<string_t>( N, value ).join("/");
     }
 
     template< class T, class... V >
     string_t join( const T& argc, const V&... args ){
-      return normalize( string::join( PATH_SEP, argc, args... ) );
+      return normalize( string::join( NODEPP_PATH_SEP, argc, args... ) );
     }
 
 }}
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-#undef PATH_ROOT
-#undef PATH_SEP
-#undef PATH_ONE
-#undef PATH_BEG
-#undef PATH_PEG
-#undef PATH_SEL
+#undef NODEPP_PATH_ROOT
+#undef NODEPP_PATH_SEP
+#undef NODEPP_PATH_ONE
+#undef NODEPP_PATH_BEG
+#undef NODEPP_PATH_PEG
+#undef NODEPP_PATH_SEL
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
