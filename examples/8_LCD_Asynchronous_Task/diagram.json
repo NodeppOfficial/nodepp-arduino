@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-nano", "id": "uno", "top": 206.4, "left": 47.5, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": 8, "left": 20, "attrs": {} },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 167.15,
+      "left": 220.8,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "uno:GND.1", "lcd:VSS", "black", [ "v9.6", "h38.4", "v-124.8", "h-178.4" ] ],
+    [ "uno:GND.1", "lcd:K", "black", [ "v9.6", "h38.4", "v-124.8", "h-34.4" ] ],
+    [ "uno:GND.1", "lcd:RW", "black", [ "v9.6", "h38.4", "v-124.8", "h-139.9" ] ],
+    [ "uno:5V", "lcd:VDD", "red", [ "v19.2", "h-111.3" ] ],
+    [ "r1:1", "lcd:A", "pink", [] ],
+    [ "uno:12", "lcd:RS", "blue", [ "v-38.4", "h13.3" ] ],
+    [ "uno:11", "lcd:E", "purple", [ "v-38.4", "h23.2" ] ],
+    [ "uno:10", "lcd:D4", "green", [ "v-38.4", "h61.6" ] ],
+    [ "uno:9", "lcd:D5", "brown", [ "v-38.4", "h61.5" ] ],
+    [ "uno:8", "lcd:D6", "gold", [ "v-38.4", "h61.4" ] ],
+    [ "uno:7", "lcd:D7", "gray", [ "v-38.4", "h61.3" ] ],
+    [ "uno:5V", "r1:2", "red", [ "v19.2", "h96" ] ]
+  ],
+  "dependencies": {}
+}
