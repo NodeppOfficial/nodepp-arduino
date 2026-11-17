@@ -34,39 +34,47 @@ namespace nodepp { namespace console {
     
     /*─······································································─*/
 
-    inline void enable( uint port ){ Serial.begin( port ); }
-
     inline void wait(){ char x; conio::scan("%c",&x); }
+    
+    /*─······································································─*/
+
+    inline void enable( ulong port ){ switch( port ){
+		case 110UL  : case 300UL  : case 600UL   : case 1200UL :
+        case 2400UL : case 4800UL : case 9600UL  : case 19200UL:
+		case 38400UL: case 57600UL: case 115200UL:
+        /*----*/ Serial.begin( port ); break ;
+		default: Serial.begin(9600UL); break ;
+	}}
     
     /*─······································································─*/
 
     template< class... T >
     int warning( const T&... args ){ 
-        conio::log( MEMSTR("WARNING: ") );
+        conio::log( "WARNING: " );
         return log( args... ); 
     }
 
     template< class... T >
     int success( const T&... args ){ 
-        conio::log( MEMSTR("SUCCESS: ") );
+        conio::log( "SUCCESS: " );
         return log( args... );  
     }
 
     template< class... T >
     int error( const T&... args ){ 
-        conio::log( MEMSTR("ERROR: ") ); 
+        conio::log( "ERROR: " ); 
         return log( args... ); 
     }
 
     template< class... T >
     int done( const T&... args ){ 
-        conio::log( MEMSTR("DONE: ") ); 
+        conio::log( "DONE: " ); 
         return log( args... ); 
     }
 
     template< class... T >
     int info( const T&... args ){ 
-        conio::log( MEMSTR("INFO: ") ); 
+        conio::log( "INFO: " ); 
         return log( args... ); 
     }
 
